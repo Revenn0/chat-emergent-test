@@ -107,22 +107,22 @@ export default function IntegrationsPage() {
     <div className="p-6 max-w-3xl space-y-6">
       <div>
         <h1 className="text-lg font-semibold">Integrations</h1>
-        <p className="text-sm text-muted-foreground">Connect Gmail to send emails and manage Google Sheets</p>
+        <p className="text-sm text-muted-foreground">Connect your Google account once — unlocks Gmail email sending and Google Sheets management</p>
       </div>
 
-      {/* Gmail Connection */}
+      {/* Google Connection */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <Mail size={15} className="text-muted-foreground" />
-            Gmail
+            Google Account
             {gmailStatus.connected ? (
               <Badge variant="outline" className="text-[10px] bg-green-50 text-green-700 border-green-200">Connected</Badge>
             ) : (
               <Badge variant="outline" className="text-[10px] text-muted-foreground">Not connected</Badge>
             )}
           </CardTitle>
-          <CardDescription className="text-xs">Send emails from your Gmail account</CardDescription>
+          <CardDescription className="text-xs">One login — Gmail email sending + Google Sheets access, both activated</CardDescription>
         </CardHeader>
         <Separator />
         <CardContent className="pt-4">
