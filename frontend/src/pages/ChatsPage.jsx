@@ -12,7 +12,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 function formatTime(ts) {
   if (!ts) return "";
-  try { return new Date(ts).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }); } catch { return ""; }
+  try { return new Date(ts).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }); } catch { return ""; }
 }
 
 export default function ChatsPage() {
@@ -76,7 +76,7 @@ export default function ChatsPage() {
       {/* List */}
       <div className={`${selectedJid ? "hidden md:flex" : "flex"} flex-col w-full md:w-64 border-r border-border bg-white flex-shrink-0`}>
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-          <span className="text-sm font-medium">Conversas</span>
+          <span className="text-sm font-medium">Conversations</span>
           <Button variant="ghost" size="icon" className="w-7 h-7" onClick={loadConversations}>
             <RefreshCw size={13} className="text-muted-foreground" />
           </Button>
@@ -85,7 +85,7 @@ export default function ChatsPage() {
           {conversations.length === 0 ? (
             <div className="py-12 text-center px-4">
               <MessageSquare size={24} className="text-muted-foreground/40 mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">Nenhuma conversa</p>
+              <p className="text-sm text-muted-foreground">No conversations yet</p>
             </div>
           ) : (
             conversations.map((conv) => (
@@ -119,7 +119,7 @@ export default function ChatsPage() {
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <MessageSquare size={36} className="text-muted-foreground/20 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">Selecione uma conversa</p>
+              <p className="text-sm text-muted-foreground">Select a conversation</p>
             </div>
           </div>
         ) : (
@@ -138,7 +138,7 @@ export default function ChatsPage() {
             <ScrollArea className="flex-1 bg-muted/20">
               <div className="px-4 py-4 space-y-3 max-w-2xl mx-auto">
                 {messages.length === 0 && (
-                  <p className="text-center text-sm text-muted-foreground py-8">Nenhuma mensagem</p>
+                  <p className="text-center text-sm text-muted-foreground py-8">No messages</p>
                 )}
                 {messages.map((msg) => (
                   <div
@@ -177,7 +177,7 @@ export default function ChatsPage() {
                 <Input
                   value={manualMsg}
                   onChange={(e) => setManualMsg(e.target.value)}
-                  placeholder="Enviar mensagem manual..."
+                  placeholder="Send a manual message..."
                   className="flex-1 text-sm"
                   data-testid="manual-message-input"
                 />
