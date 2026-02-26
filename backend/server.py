@@ -666,7 +666,8 @@ async def get_stats(user: User = Depends(get_current_user)):
     user_msgs = await db.messages.count_documents({"user_id": user.user_id, "role": "user"})
     bot_msgs = await db.messages.count_documents({"user_id": user.user_id, "role": "assistant"})
     pending_actions = await db.bot_actions.count_documents({"user_id": user.user_id, "status": "pending"})
-    return {"total_conversations": total_convs, "total_messages": total_msgs, "user_messages": user_msgs, "bot_messages": bot_msgs, "pending_actions": pending_actions}
+    config = await get_bot_config(user.user_id)
+    return {"total_conversations": total_convs, "total_messages": total_msgs, "user_messages": user_msgs, "bot_messages": bot_msgs, "pending_actions": pending_actions, "ai_enabled": config.ai_enabled}
 
 # ─── GMAIL / SHEETS INTEGRATION ───────────────────────────
 
