@@ -107,13 +107,6 @@ async def get_bot_config() -> BotConfig:
         return BotConfig(**doc)
     return BotConfig()
 
-async def get_or_create_llm_chat(session_id: str, config: BotConfig) -> LlmChat:
-    chat = LlmChat(
-        api_key=EMERGENT_LLM_KEY,
-        session_id=session_id,
-        system_message=config.system_prompt,
-    ).with_model(config.model_provider, config.model_name)
-    return chat
 
 async def add_log(level: str, message: str):
     entry = {
