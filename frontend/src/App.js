@@ -14,6 +14,7 @@ import KnowledgePage from "./pages/KnowledgePage";
 import ActionsPage from "./pages/ActionsPage";
 import IntegrationsPage from "./pages/IntegrationsPage";
 import WorkflowPage from "./pages/WorkflowPage";
+import ChatTestPage from "./pages/ChatTestPage";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
