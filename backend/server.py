@@ -233,20 +233,28 @@ async def handle_incoming_message(msg: IncomingMessage):
     await db.messages.insert_one({**user_msg})
 
     # Build enriched system prompt with context
-    tone_map = {"friendly": "amigável e informal", "professional": "profissional e formal", "technical": "técnico e direto", "empathetic": "empático e acolhedor"}
-    length_map = {"concise": "respostas curtas de 1-2 frases", "normal": "respostas de 1-3 parágrafos", "detailed": "respostas detalhadas e completas"}
+    tone_map = {"friendly": "friendly and informal", "professional": "professional and formal", "technical": "technical and concise", "empathetic": "empathetic and supportive"}
+    length_map = {"concise": "short responses of 1-2 sentences", "normal": "responses of 1-3 paragraphs", "detailed": "detailed and comprehensive responses"}
 
     enriched_prompt = config.system_prompt
     if config.tone:
-        enriched_prompt += f"\n\nTom: Seja {tone_map.get(config.tone, config.tone)}."
+        enriched_prompt += f"\n\nTone: Be {tone_map.get(config.tone, config.tone)}."
     if config.response_length:
-        enriched_prompt += f"\nTamanho: Use {length_map.get(config.response_length, config.response_length)}."
+        enriched_prompt += f"\nLength: Use {length_map.get(config.response_length, config.response_length)}."
     if config.language and config.language != "auto":
-        enriched_prompt += f"\nIdioma: Responda sempre em {config.language}."
+        enriched_prompt += f"\nLanguage: Always respond in {config.language}."
     if config.business_context:
-        enriched_prompt += f"\n\nContexto do negócio:\n{config.business_context}"
+        enriched_prompt += f"\n\nBusiness context:\n{config.business_context}"
     if config.faq_text:
-        enriched_prompt += f"\n\nPerguntas frequentes (use como referência):\n{config.faq_text}"
+        enriched_prompt += f"\n\nFrequently asked questions (use as reference):\n{config.faq_text}"
+
+    # Inject knowledge base documents
+    kb_docs = await db.knowledge_docs.find({"enabled": True}, {"_id": 0}).to_list(50)
+    if kb_docs:
+        kb_text = "\n\n---\n\n".join(
+            f"[Document: {d['filename']}]\n{d['content'][:6000]}" for d in kb_docs
+        )
+        enriched_prompt += f"\n\n## Knowledge Base\nUse the following documents to answer questions accurately:\n\n{kb_text}"
 
     # Create LLM chat
     chat = LlmChat(
