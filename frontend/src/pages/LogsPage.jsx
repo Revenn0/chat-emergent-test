@@ -32,8 +32,8 @@ export default function LogsPage() {
     <div className="p-6 space-y-4 max-w-4xl">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold">Logs do sistema</h1>
-          <p className="text-sm text-muted-foreground">Registro de atividade em tempo real</p>
+          <h1 className="text-lg font-semibold">System Logs</h1>
+          <p className="text-sm text-muted-foreground">Real-time activity log</p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -53,20 +53,20 @@ export default function LogsPage() {
 
       <Card>
         <CardHeader className="pb-2 flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-sm font-medium">Entradas recentes</CardTitle>
-          <Badge variant="secondary" className="text-xs font-normal">{logs.length} registros</Badge>
+          <CardTitle className="text-sm font-medium">Recent entries</CardTitle>
+          <Badge variant="secondary" className="text-xs font-normal">{logs.length} records</Badge>
         </CardHeader>
         <Separator />
         <CardContent className="p-0">
           <ScrollArea className="h-[calc(100vh-220px)]">
             {logs.length === 0 ? (
-              <div className="py-12 text-center text-sm text-muted-foreground">Nenhum log disponível</div>
+              <div className="py-12 text-center text-sm text-muted-foreground">No logs available</div>
             ) : (
               <div className="divide-y divide-border" data-testid="logs-terminal">
                 {logs.map((log, i) => (
                   <div key={i} className="flex items-start gap-3 px-4 py-2.5 hover:bg-muted/30 transition-colors duration-100">
                     <span className="text-[10px] text-muted-foreground flex-shrink-0 mt-0.5 font-mono tabular-nums">
-                      {log.timestamp ? new Date(log.timestamp).toLocaleTimeString("pt-BR") : "--:--:--"}
+                      {log.timestamp ? new Date(log.timestamp).toLocaleTimeString("en-GB") : "--:--:--"}
                     </span>
                     <Badge
                       variant="outline"
