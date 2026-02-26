@@ -74,6 +74,12 @@ const defaultConfig = {
   schedule_start: "09:00",
   schedule_end: "18:00",
   outside_hours_message: "We're currently outside business hours. We'll be back shortly.",
+  strict_mode: true,
+  booking_types: [
+    { id: "breakdown", name: "Breakdown", enabled: true, keywords: ["breakdown","broke down","broken down"], confirmation_message: "I've logged a breakdown request. Our team will be in touch shortly." },
+    { id: "arrange_collection", name: "Arrange Collection", enabled: true, keywords: ["collection","collect","pick up","pickup"], confirmation_message: "I've arranged a collection request. Please await admin confirmation." },
+    { id: "arrange_delivery", name: "Arrange Delivery", enabled: true, keywords: ["delivery","deliver","drop off","dropoff"], confirmation_message: "I've arranged a delivery request. Please await admin confirmation." },
+  ],
 };
 
 function SettingRow({ label, description, children }) {
