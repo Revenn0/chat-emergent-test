@@ -241,7 +241,7 @@ export default function IntegrationsPage() {
               )}
             </>
           ) : (
-            <p className="text-sm text-muted-foreground">Connect Gmail first to create and manage spreadsheets.</p>
+            <p className="text-sm text-muted-foreground">Connect your Google account above to create and manage spreadsheets.</p>
           )}
         </CardContent>
       </Card>
