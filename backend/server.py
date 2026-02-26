@@ -75,6 +75,7 @@ class BotConfig(BaseModel):
     schedule_start: str = "09:00"
     schedule_end: str = "18:00"
     outside_hours_message: str = "We're currently outside business hours. We'll be back shortly."
+    ai_enabled: bool = True
     updated_at: Optional[str] = None
 
 class BotAction(BaseModel):
