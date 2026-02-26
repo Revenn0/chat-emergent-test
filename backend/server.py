@@ -314,6 +314,14 @@ async def handle_incoming_message(msg: IncomingMessage):
     await add_log(user_id, "info", f"Message from {push_name}: {text[:60]}")
     config = await get_bot_config(user_id)
 
+    # Skip if conversation is taken over by admin
+    conv_doc = await db.conversations.find_one({"user_id": user_id, "jid": jid}, {"_id": 0})
+    if conv_doc and conv_doc.get("taken_over"):
+        await db.messages.insert_one({"id": str(uuid.uuid4()), "user_id": user_id, "from_jid": jid, "push_name": push_name, "text": text, "role": "user", "timestamp": ts})
+        await db.conversations.update_one({"user_id": user_id, "jid": jid}, {"$set": {"last_message": text, "last_timestamp": ts}, "$inc": {"message_count": 1}})
+        await add_log(user_id, "info", f"[LIVE AGENT] Message from {push_name} held (admin takeover active)")
+        return {"reply": None}
+
     if jid in (config.blocked_contacts or []):
         return {"reply": None}
     for word in (config.blocked_words or []):
@@ -334,6 +342,21 @@ async def handle_incoming_message(msg: IncomingMessage):
         })
         if recent_count >= config.rate_limit_msgs:
             return {"reply": None}
+
+    # First message greeting
+    is_first_message = not await db.messages.find_one({"user_id": user_id, "from_jid": jid})
+    if is_first_message and config.greeting_message:
+        greeting_reply = config.greeting_message
+        await db.messages.insert_one({"id": str(uuid.uuid4()), "user_id": user_id, "from_jid": jid, "push_name": push_name, "text": text, "role": "user", "timestamp": ts})
+        g_ts = datetime.now(timezone.utc).isoformat()
+        await db.messages.insert_one({"id": str(uuid.uuid4()), "user_id": user_id, "from_jid": jid, "push_name": push_name, "text": greeting_reply, "role": "assistant", "timestamp": g_ts})
+        await db.conversations.update_one(
+            {"user_id": user_id, "jid": jid},
+            {"$set": {"user_id": user_id, "jid": jid, "push_name": push_name, "last_message": text, "last_timestamp": ts, "taken_over": False}, "$inc": {"message_count": 1}},
+            upsert=True,
+        )
+        await add_log(user_id, "info", f"First message from {push_name} — greeting sent")
+        return {"reply": greeting_reply}
 
     # Save user message
     await db.messages.insert_one({"id": str(uuid.uuid4()), "user_id": user_id, "from_jid": jid, "push_name": push_name, "text": text, "role": "user", "timestamp": ts})
@@ -372,6 +395,26 @@ async def handle_incoming_message(msg: IncomingMessage):
             enriched_prompt += f"\n\nBusiness context:\n{config.business_context}"
         if config.faq_text:
             enriched_prompt += f"\n\nFAQ:\n{config.faq_text}"
+
+        # Inject workflow if active
+        workflow_doc = await db.workflows.find_one({"user_id": user_id}, {"_id": 0})
+        if workflow_doc and workflow_doc.get("active") and workflow_doc.get("nodes"):
+            nodes = workflow_doc["nodes"]
+            workflow_lines = ["\n\n## Conversation Workflow\nFollow this conversation flow. Adapt naturally, but always work toward completing each step:\n"]
+            for node in nodes:
+                node_type = node.get("type", "message").upper()
+                title = node.get("title", "")
+                content = node.get("content", "")
+                branches = node.get("branches", [])
+                line = f"[{node_type}] {title}"
+                if content:
+                    line += f": {content}"
+                if branches:
+                    branch_labels = " | ".join(b.get("label", "") for b in branches)
+                    line += f" → Options: {branch_labels}"
+                workflow_lines.append(line)
+            enriched_prompt += "\n".join(workflow_lines)
+            enriched_prompt += "\n\nIMPORTANT: If a user skips steps, acknowledge it and guide them back toward the appropriate step based on context. Never skip the Escalate step when it applies."
 
         kb_docs = await db.knowledge_docs.find({"user_id": user_id, "enabled": True}, {"_id": 0}).to_list(50)
         if kb_docs:
