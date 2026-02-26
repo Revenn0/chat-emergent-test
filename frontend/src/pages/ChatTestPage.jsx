@@ -46,6 +46,14 @@ export default function ChatTestPage() {
 
   useEffect(() => {
     loadAll();
+    // Poll AI status every 4s so toggle in sidebar reflects here immediately
+    const interval = setInterval(async () => {
+      try {
+        const statsR = await axios.get(`${API}/stats`, { withCredentials: true });
+        setAiEnabled(statsR.data.ai_enabled ?? true);
+      } catch {}
+    }, 4000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
