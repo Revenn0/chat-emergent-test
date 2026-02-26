@@ -675,13 +675,15 @@ class WhatsAppBotAPITester:
         print(f"🕒 Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print("="*60)
 
-        # Test all endpoints
+        # Test all endpoints in proper order
         test_methods = [
-            self.test_root_api,
-            self.test_wa_status_api,
+            self.test_root_api,                # Test root API returns WhatsApp 365 Bot message
+            self.test_auth_endpoints,          # Test authentication (401 without cookie, 200 with token)
+            self.test_wa_status_api,          # Test WhatsApp endpoints (these might not require auth)
             self.test_wa_qr_api,
-            self.test_config_api,
-            self.test_stats_api,
+            self.test_config_api,             # Test config save with booking_types and strict_mode
+            self.test_stats_api,              # Test stats returns pending_actions count
+            self.test_actions_api,            # Test actions list and update
             self.test_logs_api,
             self.test_conversations_api,
             self.test_knowledge_base_apis,
