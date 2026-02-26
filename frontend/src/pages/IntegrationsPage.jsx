@@ -132,7 +132,7 @@ export default function IntegrationsPage() {
                 <CheckCircle2 size={16} className="text-green-600" />
                 <div>
                   <p className="text-sm font-medium">{gmailStatus.email}</p>
-                  <p className="text-xs text-muted-foreground">Gmail connected and ready</p>
+                  <p className="text-xs text-muted-foreground">Gmail + Google Sheets connected and ready</p>
                 </div>
               </div>
               <Button variant="outline" size="sm" onClick={handleGmailDisconnect} className="text-destructive border-destructive/30">
@@ -144,13 +144,13 @@ export default function IntegrationsPage() {
               <div className="p-3 rounded-md bg-blue-50 border border-blue-100 flex items-start gap-2">
                 <AlertCircle size={14} className="text-blue-600 mt-0.5 flex-shrink-0" />
                 <p className="text-xs text-blue-700">
-                  Gmail requires a Google Cloud project with OAuth credentials.{" "}
-                  <a href="https://console.cloud.google.com" target="_blank" rel="noreferrer" className="underline font-medium">Create one here</a>
-                  , enable the Gmail API and Sheets API, and add <code className="bg-blue-100 px-1 rounded text-[10px]">{process.env.REACT_APP_BACKEND_URL}/api/integrations/gmail/callback</code> as an authorised redirect URI.
+                  Requires a Google Cloud project with OAuth credentials. Enable <strong>Gmail API</strong> and <strong>Sheets API</strong>.{" "}
+                  <a href="https://console.cloud.google.com" target="_blank" rel="noreferrer" className="underline font-medium">Create here</a>
+                  {" — "}add <code className="bg-blue-100 px-1 rounded text-[10px]">{process.env.REACT_APP_BACKEND_URL}/api/integrations/gmail/callback</code> as authorised redirect URI.
                 </p>
               </div>
               <Button size="sm" onClick={() => setShowCredModal(true)} data-testid="connect-gmail-btn">
-                <Mail size={13} className="mr-1.5" /> Connect Gmail
+                <Mail size={13} className="mr-1.5" /> Connect Google Account
               </Button>
             </div>
           )}
