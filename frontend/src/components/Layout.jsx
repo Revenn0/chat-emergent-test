@@ -10,7 +10,11 @@ import {
   Loader2,
   Menu,
   X,
+  Bot,
 } from "lucide-react";
+import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
+import { Separator } from "../components/ui/separator";
 import axios from "axios";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -40,66 +44,36 @@ export function Layout({ children }) {
     return () => clearInterval(interval);
   }, []);
 
-  const StatusIcon = status.connected ? Wifi : status.status === "connecting" || status.status === "qr_ready" ? Loader2 : WifiOff;
-  const statusColor = status.connected
-    ? "text-green-400"
-    : status.status === "connecting" || status.status === "qr_ready"
-    ? "text-yellow-400"
-    : "text-red-400";
-  const statusLabel = status.connected ? "CONECTADO" : status.status === "qr_ready" ? "AGUARDANDO QR" : status.status === "connecting" ? "CONECTANDO" : "DESCONECTADO";
+  const isConnected = status.connected;
+  const isConnecting = status.status === "connecting" || status.status === "qr_ready";
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      {/* Mobile overlay */}
       {mobileOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/60 md:hidden"
-          onClick={() => setMobileOpen(false)}
-        />
+        <div className="fixed inset-0 z-40 bg-black/30 md:hidden" onClick={() => setMobileOpen(false)} />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed md:relative z-50 h-full w-64 flex flex-col border-r border-border bg-card/50 backdrop-blur-xl transition-transform duration-200 ${
+        className={`fixed md:relative z-50 h-full w-56 flex flex-col border-r border-border bg-white transition-transform duration-200 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
         {/* Logo */}
-        <div className="flex items-center gap-3 px-6 py-5 border-b border-border">
-          <div className="w-8 h-8 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center">
-            <MessageSquare size={16} className="text-primary" />
+        <div className="flex items-center gap-2.5 px-4 py-4">
+          <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center">
+            <Bot size={14} className="text-white" />
           </div>
-          <div>
-            <span className="font-mono font-bold text-sm text-foreground">WA AI Bot</span>
-            <p className="text-xs text-muted-foreground font-mono">Commander</p>
-          </div>
-          <button
-            className="ml-auto md:hidden text-muted-foreground hover:text-foreground"
-            onClick={() => setMobileOpen(false)}
-          >
-            <X size={16} />
+          <span className="font-semibold text-sm text-foreground tracking-tight">WA AI Bot</span>
+          <button className="ml-auto md:hidden text-muted-foreground" onClick={() => setMobileOpen(false)}>
+            <X size={15} />
           </button>
         </div>
 
-        {/* Status */}
-        <div className="mx-4 my-3 px-3 py-2 rounded-lg bg-background/50 border border-border/50">
-          <div className="flex items-center gap-2">
-            {status.connected && <span className="w-2 h-2 rounded-full bg-green-400 pulse-green" />}
-            <StatusIcon
-              size={13}
-              className={`${statusColor} ${status.status === "connecting" ? "animate-spin" : ""}`}
-            />
-            <span className={`font-mono text-xs font-medium ${statusColor}`}>{statusLabel}</span>
-          </div>
-          {status.jid && (
-            <p className="text-xs text-muted-foreground font-mono mt-1 truncate">
-              {status.jid.split(":")[0]}
-            </p>
-          )}
-        </div>
+        <Separator />
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-2 space-y-1">
+        <nav className="flex-1 px-2 py-3 space-y-0.5">
           {navItems.map((item) => {
             const active = location.pathname === item.path;
             return (
@@ -107,45 +81,54 @@ export function Layout({ children }) {
                 key={item.path}
                 to={item.path}
                 onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 ${
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors duration-100 ${
                   active
-                    ? "bg-primary/15 text-primary border border-primary/20"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                    ? "bg-primary text-white font-medium"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
                 data-testid={`nav-${item.label.toLowerCase()}`}
               >
-                <item.icon size={16} strokeWidth={1.5} />
+                <item.icon size={15} strokeWidth={1.75} />
                 <span>{item.label}</span>
               </NavLink>
             );
           })}
         </nav>
 
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-border">
-          <p className="text-xs text-muted-foreground font-mono">v1.0.0 · Powered by GPT-4o</p>
+        <Separator />
+
+        {/* Status */}
+        <div className="px-4 py-3">
+          <div className="flex items-center gap-2">
+            {isConnected ? (
+              <Wifi size={13} className="text-green-600" />
+            ) : isConnecting ? (
+              <Loader2 size={13} className="text-yellow-600 animate-spin" />
+            ) : (
+              <WifiOff size={13} className="text-muted-foreground" />
+            )}
+            <Badge
+              variant={isConnected ? "default" : "secondary"}
+              className={`text-xs px-2 py-0 h-5 font-normal ${
+                isConnected ? "bg-green-100 text-green-700 border-green-200" : ""
+              }`}
+            >
+              {isConnected ? "Conectado" : isConnecting ? "Aguardando" : "Desconectado"}
+            </Badge>
+          </div>
         </div>
       </aside>
 
-      {/* Main content */}
+      {/* Main */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Mobile header */}
-        <header className="md:hidden flex items-center gap-3 px-4 py-3 border-b border-border bg-card/50 backdrop-blur-md">
-          <button
-            data-testid="mobile-menu-btn"
-            className="text-muted-foreground hover:text-foreground"
-            onClick={() => setMobileOpen(true)}
-          >
-            <Menu size={20} />
-          </button>
-          <span className="font-mono font-bold text-sm">WA AI Bot</span>
-          <div className={`ml-auto flex items-center gap-1.5 ${statusColor}`}>
-            <StatusIcon size={14} className={status.status === "connecting" ? "animate-spin" : ""} />
-            <span className="font-mono text-xs">{statusLabel}</span>
-          </div>
+        <header className="md:hidden flex items-center gap-3 px-4 py-3 border-b border-border bg-white">
+          <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => setMobileOpen(true)}>
+            <Menu size={16} />
+          </Button>
+          <span className="font-semibold text-sm">WA AI Bot</span>
         </header>
-
-        <main className="flex-1 overflow-y-auto bg-background" data-testid="main-content">
+        <main className="flex-1 overflow-y-auto bg-muted/30" data-testid="main-content">
           {children}
         </main>
       </div>
