@@ -144,6 +144,9 @@ class WorkflowData(BaseModel):
 class TakeoverRequest(BaseModel):
     active: bool
 
+class ChatTestRequest(BaseModel):
+    message: str
+
 class ActionUpdateRequest(BaseModel):
     status: str
     admin_note: Optional[str] = None
