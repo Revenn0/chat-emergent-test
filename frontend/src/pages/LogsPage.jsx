@@ -31,6 +31,18 @@ export default function LogsPage() {
     return () => clearInterval(interval);
   }, [autoRefresh]);
 
+  const handleClear = async () => {
+    setClearing(true);
+    try {
+      await axios.delete(`${API}/logs`);
+      setLogs([]);
+      toast.success("Logs cleared.");
+    } catch {
+      toast.error("Failed to clear logs.");
+    }
+    setClearing(false);
+  };
+
   return (
     <div className="p-6 space-y-4 max-w-4xl">
       <div className="flex items-center justify-between">
