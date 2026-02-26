@@ -13,6 +13,7 @@ import LogsPage from "./pages/LogsPage";
 import KnowledgePage from "./pages/KnowledgePage";
 import ActionsPage from "./pages/ActionsPage";
 import IntegrationsPage from "./pages/IntegrationsPage";
+import WorkflowPage from "./pages/WorkflowPage";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
