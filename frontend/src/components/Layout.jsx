@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, MessageSquare, Settings, Terminal, Wifi, WifiOff,
-  Loader2, Menu, X, Bot, BookOpen, Zap, LogOut, ChevronDown, GitBranch
+  Loader2, Menu, X, Bot, BookOpen, Zap, LogOut, ChevronDown, GitBranch,
+  FlaskConical, ZapOff
 } from "lucide-react";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
