@@ -415,6 +415,78 @@ export default function ConfigPage() {
           </Card>
         </TabsContent>
 
+        {/* ── BOOKINGS ── */}
+        <TabsContent value="bookings">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Booking Detection</CardTitle>
+              <CardDescription className="text-xs">Configure which booking types the AI should detect and how to respond</CardDescription>
+            </CardHeader>
+            <Separator />
+            <CardContent className="pt-4 space-y-4">
+              {(config.booking_types || []).map((bt, idx) => (
+                <div key={bt.id} className="p-3 rounded-md border border-border space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={bt.enabled}
+                        onCheckedChange={(v) => {
+                          const updated = [...config.booking_types];
+                          updated[idx] = { ...bt, enabled: v };
+                          set("booking_types", updated);
+                        }}
+                        data-testid={`booking-toggle-${bt.id}`}
+                      />
+                      <span className="text-sm font-medium">{bt.name}</span>
+                    </div>
+                    <Badge variant={bt.enabled ? "default" : "secondary"} className="text-[10px]">
+                      {bt.enabled ? "Active" : "Disabled"}
+                    </Badge>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Trigger keywords (comma-separated)</Label>
+                    <Input
+                      value={(bt.keywords || []).join(", ")}
+                      onChange={(e) => {
+                        const updated = [...config.booking_types];
+                        updated[idx] = { ...bt, keywords: e.target.value.split(",").map((k) => k.trim()).filter(Boolean) };
+                        set("booking_types", updated);
+                      }}
+                      className="text-xs"
+                      placeholder="e.g. breakdown, broke down, need help"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Confirmation message sent to client</Label>
+                    <Textarea
+                      value={bt.confirmation_message}
+                      onChange={(e) => {
+                        const updated = [...config.booking_types];
+                        updated[idx] = { ...bt, confirmation_message: e.target.value };
+                        set("booking_types", updated);
+                      }}
+                      className="text-xs min-h-[60px] resize-none"
+                      placeholder="Message sent when this booking is detected..."
+                    />
+                  </div>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const newId = `custom_${Date.now()}`;
+                  set("booking_types", [...(config.booking_types || []), { id: newId, name: "New Booking Type", enabled: true, keywords: [], confirmation_message: "" }]);
+                }}
+                className="w-full gap-1.5"
+                data-testid="add-booking-type-btn"
+              >
+                <Plus size={13} /> Add booking type
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* ── SECURITY ── */}
         <TabsContent value="security">
           <Card>
