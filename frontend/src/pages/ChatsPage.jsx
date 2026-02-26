@@ -226,7 +226,7 @@ export default function ChatsPage() {
                 <Input
                   value={manualMsg}
                   onChange={(e) => setManualMsg(e.target.value)}
-                  placeholder="Send a manual message..."
+                  placeholder={selectedConv?.taken_over ? "Reply as agent..." : "Send a manual message..."}
                   className="flex-1 text-sm"
                   data-testid="manual-message-input"
                 />
