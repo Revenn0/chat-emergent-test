@@ -63,7 +63,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold">Dashboard</h1>
-          <p className="text-sm text-muted-foreground">Visão geral do seu chatbot</p>
+          <p className="text-sm text-muted-foreground">Overview of your chatbot</p>
         </div>
         <Link to="/connect">
           <Badge
@@ -74,27 +74,27 @@ export default function DashboardPage() {
             data-testid="status-pill"
           >
             {isConnected ? <Wifi size={11} /> : isConnecting ? <Loader2 size={11} className="animate-spin" /> : <WifiOff size={11} />}
-            {isConnected ? "Conectado" : isConnecting ? "Aguardando QR" : "Desconectado"}
+            {isConnected ? "Connected" : isConnecting ? "Awaiting QR" : "Disconnected"}
           </Badge>
         </Link>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" data-testid="stats-grid">
-        <StatCard icon={Users} label="Conversas" value={stats.total_conversations} description="contatos únicos" />
-        <StatCard icon={MessageSquare} label="Mensagens" value={stats.total_messages} description="total trocadas" />
-        <StatCard icon={TrendingUp} label="Recebidas" value={stats.user_messages} description="do usuário" />
-        <StatCard icon={Bot} label="Enviadas" value={stats.bot_messages} description="pelo bot" />
+        <StatCard icon={Users} label="Conversations" value={stats.total_conversations} description="unique contacts" />
+        <StatCard icon={MessageSquare} label="Messages" value={stats.total_messages} description="total exchanged" />
+        <StatCard icon={TrendingUp} label="Received" value={stats.user_messages} description="from users" />
+        <StatCard icon={Bot} label="Sent" value={stats.bot_messages} description="by the bot" />
       </div>
 
       {/* Recent */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card data-testid="recent-conversations">
           <CardHeader className="pb-2 flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-medium">Conversas recentes</CardTitle>
+            <CardTitle className="text-sm font-medium">Recent conversations</CardTitle>
             <Link to="/chats">
               <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground gap-1">
-                Ver todas <ArrowRight size={11} />
+                View all <ArrowRight size={11} />
               </Button>
             </Link>
           </CardHeader>
@@ -102,7 +102,7 @@ export default function DashboardPage() {
           <CardContent className="pt-3 space-y-1">
             {recentConvs.length === 0 ? (
               <div className="py-6 text-center text-sm text-muted-foreground">
-                {isConnected ? "Aguardando mensagens..." : "Conecte o WhatsApp primeiro"}
+                {isConnected ? "Waiting for messages..." : "Connect WhatsApp first"}
               </div>
             ) : (
               recentConvs.map((conv) => (
@@ -127,17 +127,17 @@ export default function DashboardPage() {
 
         <Card data-testid="activity-log">
           <CardHeader className="pb-2 flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-medium">Atividade recente</CardTitle>
+            <CardTitle className="text-sm font-medium">Recent activity</CardTitle>
             <Link to="/logs">
               <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground gap-1">
-                Ver logs <ArrowRight size={11} />
+                View logs <ArrowRight size={11} />
               </Button>
             </Link>
           </CardHeader>
           <Separator />
           <CardContent className="pt-3 space-y-2">
             {recentLogs.length === 0 ? (
-              <div className="py-6 text-center text-sm text-muted-foreground">Sem atividade recente</div>
+              <div className="py-6 text-center text-sm text-muted-foreground">No recent activity</div>
             ) : (
               recentLogs.map((log, i) => (
                 <div key={i} className="flex items-start gap-2 text-xs">
