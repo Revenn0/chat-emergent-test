@@ -49,6 +49,7 @@ function AppRoutes() {
               <Route path="/actions" element={<ActionsPage />} />
               <Route path="/integrations" element={<IntegrationsPage />} />
               <Route path="/workflow" element={<WorkflowPage />} />
+              <Route path="/chat-test" element={<ChatTestPage />} />
               <Route path="/config" element={<ConfigPage />} />
               <Route path="/logs" element={<LogsPage />} />
             </Routes>
