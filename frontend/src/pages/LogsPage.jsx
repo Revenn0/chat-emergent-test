@@ -63,6 +63,16 @@ export default function LogsPage() {
           <Button variant="outline" size="sm" onClick={fetchLogs} data-testid="refresh-logs-btn">
             <RefreshCw size={13} />
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleClear}
+            disabled={clearing || logs.length === 0}
+            className="text-destructive border-destructive/30 hover:bg-destructive/5 hover:text-destructive"
+            data-testid="clear-logs-btn"
+          >
+            {clearing ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+          </Button>
         </div>
       </div>
 
