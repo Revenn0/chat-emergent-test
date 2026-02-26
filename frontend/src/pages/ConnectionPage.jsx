@@ -22,6 +22,8 @@ export default function ConnectionPage() {
   const [status, setStatus] = useState({ status: "disconnected", connected: false, jid: null });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  // Prevent repeated navigate("/") calls while WhatsApp is connected
+  const navigatedRef = useRef(false);
 
   const fetchQR = async () => {
     try {
@@ -33,8 +35,17 @@ export default function ConnectionPage() {
   const fetchStatus = async () => {
     try {
       const resp = await axios.get(`${API}/wa/status`, { withCredentials: true });
-      setStatus(resp.data);
-      if (resp.data.connected) setTimeout(() => navigate("/"), 1500);
+      const newStatus = resp.data;
+      setStatus(newStatus);
+      // Reset guard when disconnected so reconnection works
+      if (!newStatus.connected) {
+        navigatedRef.current = false;
+      }
+      // Navigate to Dashboard only once when connection is first detected
+      if (newStatus.connected && !navigatedRef.current) {
+        navigatedRef.current = true;
+        setTimeout(() => navigate("/"), 1500);
+      }
     } catch {}
   };
 
