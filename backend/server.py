@@ -64,7 +64,14 @@ class BotConfig(BaseModel):
     outside_hours_message: str = "Estamos fora do horário de atendimento. Retornaremos em breve."
     updated_at: Optional[str] = None
 
-class MessageModel(BaseModel):
+class KnowledgeDoc(BaseModel):
+    id: str
+    filename: str
+    file_type: str
+    size_bytes: int
+    char_count: int
+    enabled: bool = True
+    uploaded_at: str
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     from_jid: str
     push_name: str
