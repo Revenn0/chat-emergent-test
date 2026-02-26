@@ -808,6 +808,101 @@ async def read_sheet(req: ReadSheetRequest, user: User = Depends(get_current_use
     result = service.spreadsheets().values().get(spreadsheetId=req.spreadsheet_id, range=req.range).execute()
     return {"values": result.get("values", [])}
 
+# ─── AI TOGGLE ────────────────────────────────────────────
+
+@api_router.post("/ai/toggle")
+async def toggle_ai(user: User = Depends(get_current_user)):
+    config = await get_bot_config(user.user_id)
+    new_state = not config.ai_enabled
+    await db.bot_config.update_one(
+        {"user_id": user.user_id},
+        {"$set": {"ai_enabled": new_state}},
+        upsert=True,
+    )
+    await add_log(user.user_id, "info", f"AI {'activated' if new_state else 'paused'} by admin")
+    return {"ai_enabled": new_state}
+
+# ─── CHAT TEST ────────────────────────────────────────────
+
+TEST_JID = "test@chat.test"
+
+async def build_enriched_prompt(config: BotConfig, user_id: str) -> str:
+    tone_map = {"friendly": "friendly and informal", "professional": "professional and formal", "technical": "technical and concise", "empathetic": "empathetic and supportive"}
+    length_map = {"concise": "1-2 sentences", "normal": "1-3 paragraphs", "detailed": "comprehensive"}
+    enriched = config.system_prompt
+    if config.strict_mode:
+        enriched += (
+            "\n\nCRITICAL: You MUST ONLY answer based on the context provided below (business context, FAQ, and knowledge base). "
+            "If you cannot answer using ONLY the provided information, respond exactly with: "
+            f"\"I'm sorry, I can only assist with {config.bot_name} related enquiries. Please contact us directly for other questions.\""
+            "\nDo NOT answer general knowledge questions. Do NOT make up information."
+        )
+    enriched += f"\n\nTone: Be {tone_map.get(config.tone, config.tone)}."
+    enriched += f"\nResponse length: {length_map.get(config.response_length, config.response_length)}."
+    if config.language != "auto":
+        enriched += f"\nLanguage: Always respond in {config.language}."
+    if config.business_context:
+        enriched += f"\n\nBusiness context:\n{config.business_context}"
+    if config.faq_text:
+        enriched += f"\n\nFAQ:\n{config.faq_text}"
+    workflow_doc = await db.workflows.find_one({"user_id": user_id}, {"_id": 0})
+    if workflow_doc and workflow_doc.get("active") and workflow_doc.get("nodes"):
+        nodes = workflow_doc["nodes"]
+        workflow_lines = ["\n\n## Conversation Workflow\nFollow this conversation flow:\n"]
+        for node in nodes:
+            node_type = node.get("type", "message").upper()
+            title = node.get("title", "")
+            content = node.get("content", "")
+            branches = node.get("branches", [])
+            line = f"[{node_type}] {title}"
+            if content:
+                line += f": {content}"
+            if branches:
+                line += f" → Options: {' | '.join(b.get('label','') for b in branches)}"
+            workflow_lines.append(line)
+        enriched += "\n".join(workflow_lines)
+    kb_docs = await db.knowledge_docs.find({"user_id": user_id, "enabled": True}, {"_id": 0}).to_list(50)
+    if kb_docs:
+        kb_text = "\n\n---\n\n".join(f"[Document: {d['filename']}]\n{d['content'][:5000]}" for d in kb_docs)
+        enriched += f"\n\n## Knowledge Base Documents\n{kb_text}"
+    return enriched
+
+@api_router.post("/chat-test")
+async def chat_test(req: ChatTestRequest, user: User = Depends(get_current_user)):
+    user_id = user.user_id
+    ts = datetime.now(timezone.utc).isoformat()
+    config = await get_bot_config(user_id)
+
+    await db.messages.insert_one({"id": str(uuid.uuid4()), "user_id": user_id, "from_jid": TEST_JID, "push_name": "Test", "text": req.message, "role": "user", "timestamp": ts})
+
+    booking = detect_booking(req.message, config.booking_types)
+    if booking:
+        reply = f"[BOOKING DETECTED: {booking.name}]\n\n{booking.confirmation_message}\n\nRef: {uuid.uuid4().hex[:8].upper()} (simulated)"
+        booking_detected = True
+    else:
+        enriched_prompt = await build_enriched_prompt(config, user_id)
+        chat = LlmChat(api_key=EMERGENT_LLM_KEY, session_id=f"test_{user_id}", system_message=enriched_prompt).with_model(config.model_provider, config.model_name)
+        try:
+            reply = await chat.send_message(UserMessage(text=req.message))
+        except Exception as e:
+            await add_log(user_id, "error", f"Chat test LLM error: {str(e)}")
+            reply = config.fallback_message
+        booking_detected = False
+
+    reply_ts = datetime.now(timezone.utc).isoformat()
+    await db.messages.insert_one({"id": str(uuid.uuid4()), "user_id": user_id, "from_jid": TEST_JID, "push_name": "Test", "text": reply, "role": "assistant", "timestamp": reply_ts})
+    return {"reply": reply, "booking_detected": booking_detected}
+
+@api_router.get("/chat-test/messages")
+async def get_test_messages(user: User = Depends(get_current_user)):
+    msgs = await db.messages.find({"user_id": user.user_id, "from_jid": TEST_JID}, {"_id": 0}).sort("timestamp", 1).to_list(200)
+    return msgs
+
+@api_router.delete("/chat-test/messages")
+async def clear_test_messages(user: User = Depends(get_current_user)):
+    await db.messages.delete_many({"user_id": user.user_id, "from_jid": TEST_JID})
+    return {"ok": True}
+
 # ─── ROOT ─────────────────────────────────────────────────
 
 @api_router.get("/")
