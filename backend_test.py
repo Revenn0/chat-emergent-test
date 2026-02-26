@@ -281,20 +281,106 @@ class WhatsAppBotAPITester:
         return get_success and post_success
 
     def test_stats_api(self):
-        """Test statistics endpoint"""
+        """Test statistics endpoint with authentication"""
+        auth_headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.test_session_token}'
+        }
+        
         success, response = self.run_test(
-            "Get Stats",
+            "Get Stats (Authenticated)",
             "GET",
             "api/stats", 
-            200
+            200,
+            headers=auth_headers
         )
         if success:
-            required_fields = ['total_conversations', 'total_messages', 'user_messages', 'bot_messages']
+            # Check all required fields including pending_actions
+            required_fields = ['total_conversations', 'total_messages', 'user_messages', 'bot_messages', 'pending_actions']
             for field in required_fields:
                 if field not in response:
                     print(f"❌ Missing required stats field: {field}")
                     return False
+            
+            # Verify pending_actions is a number
+            if not isinstance(response['pending_actions'], int) or response['pending_actions'] < 0:
+                print(f"❌ pending_actions should be non-negative integer, got {response['pending_actions']}")
+                return False
+            
+            print(f"✅ Stats verified - pending_actions: {response['pending_actions']}")
         return success
+
+    def test_actions_api(self):
+        """Test bot actions endpoints with authentication"""
+        auth_headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.test_session_token}'
+        }
+        
+        # Test GET /api/actions (list actions)
+        list_success, actions_data = self.run_test(
+            "Get Actions List (Authenticated)",
+            "GET",
+            "api/actions",
+            200,
+            headers=auth_headers
+        )
+        
+        if not list_success:
+            return False
+        
+        if not isinstance(actions_data, list):
+            print(f"❌ Expected array of actions, got {type(actions_data)}")
+            return False
+        
+        print(f"📋 Found {len(actions_data)} actions")
+        
+        # If there are existing actions, test updating one
+        if len(actions_data) > 0:
+            action_id = actions_data[0]['action_id']
+            
+            # Test PATCH /api/actions/{id} (update action status)
+            update_data = {
+                "status": "approved", 
+                "admin_note": "Test approval"
+            }
+            
+            update_success, update_response = self.run_test(
+                "Update Action Status",
+                "PATCH",
+                f"api/actions/{action_id}",
+                200,
+                data=update_data,
+                headers=auth_headers
+            )
+            
+            if update_success:
+                if update_response.get('status') != 'approved':
+                    print(f"❌ Action status not updated correctly")
+                    return False
+                print(f"✅ Action {action_id[:8]} status updated to approved")
+        else:
+            print("ℹ️  No existing actions to test update functionality")
+        
+        # Test filtering by status
+        filter_success, filtered_actions = self.run_test(
+            "Get Pending Actions",
+            "GET",
+            "api/actions?status=pending",
+            200,
+            headers=auth_headers
+        )
+        
+        if not filter_success:
+            return False
+        
+        if not isinstance(filtered_actions, list):
+            print(f"❌ Expected array of filtered actions, got {type(filtered_actions)}")
+            return False
+        
+        print(f"📋 Found {len(filtered_actions)} pending actions")
+        
+        return list_success and filter_success
 
     def test_logs_api(self):
         """Test logs endpoint"""
