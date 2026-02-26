@@ -53,6 +53,7 @@ jsonschema==4.26.0
 jsonschema-specifications==2025.9.1
 librt==0.8.1
 litellm==1.80.0
+lxml==6.0.2
 markdown-it-py==4.0.0
 MarkupSafe==3.0.3
 mccabe==0.7.0
@@ -68,6 +69,8 @@ packaging==26.0
 pandas==3.0.1
 passlib==1.7.4
 pathspec==1.0.4
+pdfminer.six==20251230
+pdfplumber==0.11.9
 pillow==12.1.1
 platformdirs==4.9.2
 pluggy==1.6.0
@@ -85,8 +88,10 @@ Pygments==2.19.2
 PyJWT==2.11.0
 pymongo==4.5.0
 pyparsing==3.3.2
+pypdfium2==5.5.0
 pytest==9.0.2
 python-dateutil==2.9.0.post0
+python-docx==1.2.0
 python-dotenv==1.2.1
 python-jose==3.5.0
 python-multipart==0.0.22
