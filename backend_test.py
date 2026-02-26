@@ -108,17 +108,24 @@ class WhatsAppBotAPITester:
         return success
 
     def test_config_api(self):
-        """Test bot configuration endpoints"""
+        """Test bot configuration endpoints with authentication"""
+        # Setup authenticated headers
+        auth_headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.test_session_token}'
+        }
+        
         # Test GET config
         get_success, config_data = self.run_test(
-            "Get Bot Config",
+            "Get Bot Config (Authenticated)",
             "GET",
             "api/config",
-            200
+            200,
+            headers=auth_headers
         )
         
         if get_success:
-            # Check all new expanded config fields from redesign
+            # Check all new expanded config fields from redesign including new requirements
             required_fields = [
                 # Identity fields
                 'bot_name', 'greeting_message', 'fallback_message',
@@ -128,7 +135,8 @@ class WhatsAppBotAPITester:
                 'language', 'tone', 'response_length',
                 # Context fields
                 'business_context', 'faq_text',
-                # Security fields
+                # Security fields - including strict_mode and booking_types as per requirements
+                'strict_mode', 'booking_types',
                 'rate_limit_enabled', 'rate_limit_msgs', 'rate_limit_window_minutes',
                 'blocked_words', 'blocked_contacts', 'schedule_enabled', 'schedule_start', 'schedule_end'
             ]
@@ -136,6 +144,27 @@ class WhatsAppBotAPITester:
                 if field not in config_data:
                     print(f"❌ Missing required config field: {field}")
                     return False
+            
+            # Verify strict_mode is boolean
+            if not isinstance(config_data['strict_mode'], bool):
+                print(f"❌ strict_mode should be boolean, got {type(config_data['strict_mode'])}")
+                return False
+            
+            # Verify booking_types is array
+            if not isinstance(config_data['booking_types'], list):
+                print(f"❌ booking_types should be array, got {type(config_data['booking_types'])}")
+                return False
+            
+            # Check booking types structure
+            if len(config_data['booking_types']) > 0:
+                first_booking = config_data['booking_types'][0]
+                booking_fields = ['id', 'name', 'enabled', 'keywords', 'confirmation_message']
+                for field in booking_fields:
+                    if field not in first_booking:
+                        print(f"❌ Missing booking type field: {field}")
+                        return False
+            
+            print(f"✅ Config structure verified - strict_mode: {config_data['strict_mode']}, booking_types: {len(config_data['booking_types'])} types")
             
             # Check data types for numeric fields
             numeric_checks = {
@@ -155,20 +184,20 @@ class WhatsAppBotAPITester:
                     return False
             
             # Check boolean fields
-            boolean_fields = ['rate_limit_enabled', 'schedule_enabled']
+            boolean_fields = ['rate_limit_enabled', 'schedule_enabled', 'strict_mode']
             for field in boolean_fields:
                 if not isinstance(config_data[field], bool):
                     print(f"❌ Config field {field} should be boolean, got {type(config_data[field])}")
                     return False
             
             # Check array fields
-            array_fields = ['blocked_words', 'blocked_contacts']
+            array_fields = ['blocked_words', 'blocked_contacts', 'booking_types']
             for field in array_fields:
                 if not isinstance(config_data[field], list):
                     print(f"❌ Config field {field} should be array, got {type(config_data[field])}")
                     return False
         
-        # Test POST config (save) with comprehensive config
+        # Test POST config (save) with comprehensive config including booking_types and strict_mode
         test_config = {
             # Identity
             "bot_name": "Test Bot Updated",
@@ -188,7 +217,17 @@ class WhatsAppBotAPITester:
             # Context
             "business_context": "We are a test company.",
             "faq_text": "Q: Test question?\nA: Test answer.",
-            # Security
+            # Security - including required fields
+            "strict_mode": False,  # Test changing this
+            "booking_types": [
+                {
+                    "id": "test_booking",
+                    "name": "Test Booking",
+                    "enabled": True,
+                    "keywords": ["test", "booking"],
+                    "confirmation_message": "Test booking confirmed"
+                }
+            ],
             "rate_limit_enabled": True,
             "rate_limit_msgs": 5,
             "rate_limit_window_minutes": 2,
@@ -201,30 +240,43 @@ class WhatsAppBotAPITester:
         }
         
         post_success, _ = self.run_test(
-            "Save Bot Config",
+            "Save Bot Config (booking_types & strict_mode)",
             "POST", 
             "api/config",
             200,
-            data=test_config
+            data=test_config,
+            headers=auth_headers
         )
         
         # Verify the config was actually saved by fetching it again
         if post_success:
             verify_success, verify_data = self.run_test(
-                "Verify Config Save",
+                "Verify Config Save (booking_types & strict_mode)",
                 "GET",
                 "api/config", 
-                200
+                200,
+                headers=auth_headers
             )
             
             if verify_success:
-                # Check a few key fields were updated
-                key_fields_to_check = ['bot_name', 'temperature', 'language', 'tone']
+                # Check key fields were updated including required ones
+                key_fields_to_check = ['bot_name', 'temperature', 'language', 'tone', 'strict_mode']
                 for field in key_fields_to_check:
                     if verify_data.get(field) != test_config[field]:
                         print(f"❌ Config field {field} was not saved correctly. Expected: {test_config[field]}, Got: {verify_data.get(field)}")
                         return False
-                print("✅ Config save verification passed")
+                
+                # Check booking_types was saved
+                if len(verify_data.get('booking_types', [])) == 0:
+                    print(f"❌ booking_types was not saved correctly")
+                    return False
+                
+                saved_booking = verify_data['booking_types'][0]
+                if saved_booking['id'] != 'test_booking' or saved_booking['name'] != 'Test Booking':
+                    print(f"❌ booking_types data was not saved correctly")
+                    return False
+                
+                print("✅ Config save verification passed including booking_types and strict_mode")
         
         return get_success and post_success
 
