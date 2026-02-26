@@ -7,11 +7,14 @@ import { Badge } from "../components/ui/badge";
 import { ScrollArea } from "../components/ui/scroll-area";
 import { Separator } from "../components/ui/separator";
 
+import { toast } from "sonner";
+
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function LogsPage() {
   const [logs, setLogs] = useState([]);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [clearing, setClearing] = useState(false);
 
   const fetchLogs = async () => {
     try {
