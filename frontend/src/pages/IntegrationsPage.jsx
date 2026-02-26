@@ -268,7 +268,7 @@ export default function IntegrationsPage() {
             <div className="flex gap-2 pt-1">
               <Button size="sm" onClick={handleGmailConnect} disabled={connectingGmail} className="flex-1" data-testid="confirm-gmail-connect-btn">
                 {connectingGmail ? <Loader2 size={13} className="mr-1.5 animate-spin" /> : <Mail size={13} className="mr-1.5" />}
-                {connectingGmail ? "Redirecting..." : "Connect Gmail"}
+                {connectingGmail ? "Redirecting..." : "Connect Google Account"}
               </Button>
               <Button variant="outline" size="sm" onClick={() => setShowCredModal(false)}>Cancel</Button>
             </div>
