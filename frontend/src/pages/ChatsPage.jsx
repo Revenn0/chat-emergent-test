@@ -1,21 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import axios from "axios";
-import { MessageSquare, Send, User, Bot, RefreshCw } from "lucide-react";
-import { Card } from "../components/ui/card";
+import { Send, Bot, User, RefreshCw, MessageSquare } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { ScrollArea } from "../components/ui/scroll-area";
+import { Separator } from "../components/ui/separator";
+import { Badge } from "../components/ui/badge";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 function formatTime(ts) {
   if (!ts) return "";
-  try {
-    return new Date(ts).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-  } catch {
-    return "";
-  }
+  try { return new Date(ts).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }); } catch { return ""; }
 }
 
 export default function ChatsPage() {
@@ -60,11 +57,6 @@ export default function ChatsPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSelectConv = (jid) => {
-    setSelectedJid(jid);
-    setMessages([]);
-  };
-
   const handleSend = async (e) => {
     e.preventDefault();
     if (!manualMsg.trim() || !selectedJid) return;
@@ -80,43 +72,38 @@ export default function ChatsPage() {
   const selectedConv = conversations.find((c) => c.jid === selectedJid);
 
   return (
-    <div className="flex h-full overflow-hidden fade-in" data-testid="chats-page">
-      {/* Conversations list */}
-      <div
-        className={`${
-          selectedJid ? "hidden md:flex" : "flex"
-        } flex-col w-full md:w-72 border-r border-border bg-card/30 flex-shrink-0`}
-      >
-        <div className="flex items-center justify-between px-4 py-4 border-b border-border">
-          <h2 className="font-mono font-bold text-sm text-foreground">Conversas</h2>
-          <Button variant="ghost" size="icon" onClick={loadConversations} className="w-7 h-7">
+    <div className="flex h-full overflow-hidden" data-testid="chats-page">
+      {/* List */}
+      <div className={`${selectedJid ? "hidden md:flex" : "flex"} flex-col w-full md:w-64 border-r border-border bg-white flex-shrink-0`}>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+          <span className="text-sm font-medium">Conversas</span>
+          <Button variant="ghost" size="icon" className="w-7 h-7" onClick={loadConversations}>
             <RefreshCw size={13} className="text-muted-foreground" />
           </Button>
         </div>
-
         <ScrollArea className="flex-1">
           {conversations.length === 0 ? (
             <div className="py-12 text-center px-4">
-              <MessageSquare size={28} className="text-muted-foreground/30 mx-auto mb-2" />
+              <MessageSquare size={24} className="text-muted-foreground/40 mx-auto mb-2" />
               <p className="text-sm text-muted-foreground">Nenhuma conversa</p>
             </div>
           ) : (
             conversations.map((conv) => (
               <button
                 key={conv.jid}
-                onClick={() => handleSelectConv(conv.jid)}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-left border-b border-border/30 transition-colors duration-150 ${
-                  selectedJid === conv.jid ? "bg-primary/10 border-l-2 border-l-primary" : "hover:bg-secondary/30"
+                onClick={() => { setSelectedJid(conv.jid); setMessages([]); }}
+                className={`w-full flex items-center gap-3 px-4 py-3 text-left border-b border-border/50 transition-colors duration-100 ${
+                  selectedJid === conv.jid ? "bg-primary/5 border-l-2 border-l-primary" : "hover:bg-muted/50"
                 }`}
                 data-testid={`conv-item-${conv.jid}`}
               >
-                <div className="w-9 h-9 rounded-full bg-primary/20 border border-primary/20 flex items-center justify-center text-primary font-mono font-bold text-sm flex-shrink-0">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-semibold flex-shrink-0">
                   {(conv.push_name || "?")[0].toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-foreground truncate">{conv.push_name}</p>
-                    <span className="text-xs text-muted-foreground font-mono ml-1 flex-shrink-0">{conv.message_count}</span>
+                    <p className="text-sm font-medium truncate">{conv.push_name}</p>
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 font-normal ml-1 flex-shrink-0">{conv.message_count}</Badge>
                   </div>
                   <p className="text-xs text-muted-foreground truncate">{conv.last_message}</p>
                 </div>
@@ -127,38 +114,31 @@ export default function ChatsPage() {
       </div>
 
       {/* Chat area */}
-      <div className={`${selectedJid ? "flex" : "hidden md:flex"} flex-1 flex-col min-w-0`}>
+      <div className={`${selectedJid ? "flex" : "hidden md:flex"} flex-1 flex-col min-w-0 bg-white`}>
         {!selectedJid ? (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
-              <MessageSquare size={48} className="text-muted-foreground/20 mx-auto mb-4" />
-              <p className="text-muted-foreground font-mono">Selecione uma conversa</p>
+              <MessageSquare size={36} className="text-muted-foreground/20 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">Selecione uma conversa</p>
             </div>
           </div>
         ) : (
           <>
-            {/* Chat header */}
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-card/30">
-              <button
-                onClick={() => setSelectedJid(null)}
-                className="md:hidden text-muted-foreground hover:text-foreground mr-1"
-              >
-                ←
-              </button>
-              <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/20 flex items-center justify-center text-primary font-mono font-bold text-sm">
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
+              <button onClick={() => setSelectedJid(null)} className="md:hidden text-muted-foreground mr-1 text-sm">←</button>
+              <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-semibold">
                 {(selectedConv?.push_name || "?")[0].toUpperCase()}
               </div>
               <div>
-                <p className="text-sm font-medium text-foreground">{selectedConv?.push_name || selectedJid}</p>
-                <p className="text-xs text-muted-foreground font-mono">{selectedJid.split("@")[0]}</p>
+                <p className="text-sm font-medium">{selectedConv?.push_name || selectedJid}</p>
+                <p className="text-xs text-muted-foreground">{selectedJid.split("@")[0]}</p>
               </div>
             </div>
 
-            {/* Messages */}
-            <ScrollArea className="flex-1 px-4 py-4">
-              <div className="space-y-3 max-w-2xl mx-auto">
+            <ScrollArea className="flex-1 bg-muted/20">
+              <div className="px-4 py-4 space-y-3 max-w-2xl mx-auto">
                 {messages.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground text-sm">Nenhuma mensagem</div>
+                  <p className="text-center text-sm text-muted-foreground py-8">Nenhuma mensagem</p>
                 )}
                 {messages.map((msg) => (
                   <div
@@ -167,23 +147,23 @@ export default function ChatsPage() {
                     data-testid={`msg-${msg.role}`}
                   >
                     {msg.role === "assistant" && (
-                      <div className="w-6 h-6 rounded-full bg-primary/20 border border-primary/20 flex items-center justify-center flex-shrink-0">
-                        <Bot size={12} className="text-primary" />
+                      <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <Bot size={11} className="text-primary" />
                       </div>
                     )}
-                    <div
-                      className={`max-w-xs lg:max-w-md px-3 py-2 rounded-xl text-sm ${
-                        msg.role === "user" ? "bubble-user text-foreground" : "bubble-bot text-foreground"
-                      }`}
-                    >
+                    <div className={`max-w-xs lg:max-w-sm px-3 py-2 rounded-xl text-sm ${
+                      msg.role === "user"
+                        ? "bg-primary text-primary-foreground rounded-br-sm"
+                        : "bg-white border border-border rounded-bl-sm"
+                    }`}>
                       <p className="leading-relaxed">{msg.text}</p>
-                      <p className="text-xs text-muted-foreground mt-1 text-right font-mono">
+                      <p className={`text-[10px] mt-1 text-right ${msg.role === "user" ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
                         {formatTime(msg.timestamp)}
                       </p>
                     </div>
                     {msg.role === "user" && (
-                      <div className="w-6 h-6 rounded-full bg-secondary border border-border flex items-center justify-center flex-shrink-0">
-                        <User size={12} className="text-muted-foreground" />
+                      <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                        <User size={11} className="text-muted-foreground" />
                       </div>
                     )}
                   </div>
@@ -192,24 +172,20 @@ export default function ChatsPage() {
               </div>
             </ScrollArea>
 
-            {/* Send message */}
-            <form onSubmit={handleSend} className="flex items-center gap-2 px-4 py-3 border-t border-border bg-card/20">
-              <Input
-                value={manualMsg}
-                onChange={(e) => setManualMsg(e.target.value)}
-                placeholder="Enviar mensagem manual..."
-                className="flex-1 bg-secondary/50 border-input text-sm font-mono"
-                data-testid="manual-message-input"
-              />
-              <Button
-                type="submit"
-                disabled={sendingMsg || !manualMsg.trim()}
-                className="bg-primary text-primary-foreground btn-glow hover:bg-primary/90"
-                data-testid="send-message-btn"
-              >
-                <Send size={14} />
-              </Button>
-            </form>
+            <div className="border-t border-border bg-white">
+              <form onSubmit={handleSend} className="flex items-center gap-2 px-4 py-3">
+                <Input
+                  value={manualMsg}
+                  onChange={(e) => setManualMsg(e.target.value)}
+                  placeholder="Enviar mensagem manual..."
+                  className="flex-1 text-sm"
+                  data-testid="manual-message-input"
+                />
+                <Button type="submit" disabled={sendingMsg || !manualMsg.trim()} size="sm" data-testid="send-message-btn">
+                  <Send size={13} />
+                </Button>
+              </form>
+            </div>
           </>
         )}
       </div>
