@@ -182,6 +182,42 @@ async def handle_incoming_message(msg: IncomingMessage):
 
     await add_log("info", f"Message from {push_name}: {text[:60]}")
 
+    # Get bot config
+    config = await get_bot_config()
+
+    # Security: blocked contacts
+    if jid in (config.blocked_contacts or []):
+        await add_log("info", f"Blocked contact {push_name}, ignoring")
+        return {"reply": None}
+
+    # Security: blocked words
+    text_lower = text.lower()
+    for word in (config.blocked_words or []):
+        if word.lower() in text_lower:
+            await add_log("info", f"Blocked word '{word}' in message from {push_name}")
+            return {"reply": None}
+
+    # Security: schedule
+    if config.schedule_enabled:
+        from datetime import time as dtime
+        now_time = datetime.now(timezone.utc).strftime("%H:%M")
+        if not (config.schedule_start <= now_time <= config.schedule_end):
+            await add_log("info", f"Outside business hours, sending outside_hours_message to {push_name}")
+            return {"reply": config.outside_hours_message}
+
+    # Security: rate limiting
+    if config.rate_limit_enabled:
+        window_start = datetime.now(timezone.utc).timestamp() - (config.rate_limit_window_minutes * 60)
+        from datetime import timezone as tz
+        recent_count = await db.messages.count_documents({
+            "from_jid": jid,
+            "role": "user",
+            "timestamp": {"$gte": datetime.fromtimestamp(window_start, tz.utc).isoformat()}
+        })
+        if recent_count >= config.rate_limit_msgs:
+            await add_log("warn", f"Rate limit hit for {push_name}")
+            return {"reply": None}
+
     # Save user message
     user_msg = {
         "id": str(uuid.uuid4()),
@@ -193,26 +229,36 @@ async def handle_incoming_message(msg: IncomingMessage):
     }
     await db.messages.insert_one({**user_msg})
 
-    # Get bot config
-    config = await get_bot_config()
+    # Build enriched system prompt with context
+    tone_map = {"friendly": "amigável e informal", "professional": "profissional e formal", "technical": "técnico e direto", "empathetic": "empático e acolhedor"}
+    length_map = {"concise": "respostas curtas de 1-2 frases", "normal": "respostas de 1-3 parágrafos", "detailed": "respostas detalhadas e completas"}
 
-    # Build chat history for LLM (last 20 messages)
-    history = await db.messages.find(
-        {"from_jid": jid}, {"_id": 0}
-    ).sort("timestamp", -1).limit(20).to_list(20)
-    history.reverse()
+    enriched_prompt = config.system_prompt
+    if config.tone:
+        enriched_prompt += f"\n\nTom: Seja {tone_map.get(config.tone, config.tone)}."
+    if config.response_length:
+        enriched_prompt += f"\nTamanho: Use {length_map.get(config.response_length, config.response_length)}."
+    if config.language and config.language != "auto":
+        enriched_prompt += f"\nIdioma: Responda sempre em {config.language}."
+    if config.business_context:
+        enriched_prompt += f"\n\nContexto do negócio:\n{config.business_context}"
+    if config.faq_text:
+        enriched_prompt += f"\n\nPerguntas frequentes (use como referência):\n{config.faq_text}"
 
-    # Create LLM chat with history
-    chat = await get_or_create_llm_chat(f"wa_{jid}", config)
+    # Create LLM chat
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
+    chat = LlmChat(
+        api_key=EMERGENT_LLM_KEY,
+        session_id=f"wa_{jid}",
+        system_message=enriched_prompt,
+    ).with_model(config.model_provider, config.model_name)
 
-    # Rebuild history in LLM session
-    # Since emergentintegrations manages history by session_id, we just send current message
     user_message = UserMessage(text=text)
     try:
         reply = await chat.send_message(user_message)
     except Exception as e:
         await add_log("error", f"LLM error: {str(e)}")
-        reply = "Desculpe, ocorreu um erro ao processar sua mensagem."
+        reply = config.fallback_message
 
     reply_ts = datetime.now(timezone.utc).isoformat()
 
