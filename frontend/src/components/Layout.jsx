@@ -21,9 +21,9 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const navItems = [
   { path: "/", icon: LayoutDashboard, label: "Dashboard" },
-  { path: "/connect", icon: Wifi, label: "Conexão" },
-  { path: "/chats", icon: MessageSquare, label: "Conversas" },
-  { path: "/config", icon: Settings, label: "Configurações" },
+  { path: "/connect", icon: Wifi, label: "Connection" },
+  { path: "/chats", icon: MessageSquare, label: "Conversations" },
+  { path: "/config", icon: Settings, label: "Settings" },
   { path: "/logs", icon: Terminal, label: "Logs" },
 ];
 
