@@ -21,6 +21,7 @@ const navItems = [
   { path: "/knowledge", icon: BookOpen, label: "Knowledge Base" },
   { path: "/actions", icon: Zap, label: "Bot Actions" },
   { path: "/workflow", icon: GitBranch, label: "Workflow" },
+  { path: "/chat-test", icon: FlaskConical, label: "Chat Test" },
   { path: "/integrations", icon: Settings, label: "Integrations" },
   { path: "/config", icon: Settings, label: "Settings" },
   { path: "/logs", icon: Terminal, label: "Logs" },
