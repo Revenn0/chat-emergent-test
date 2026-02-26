@@ -24,6 +24,7 @@ const navItems = [
   { path: "/", icon: LayoutDashboard, label: "Dashboard" },
   { path: "/connect", icon: Wifi, label: "Connection" },
   { path: "/chats", icon: MessageSquare, label: "Conversations" },
+  { path: "/knowledge", icon: BookOpen, label: "Knowledge Base" },
   { path: "/config", icon: Settings, label: "Settings" },
   { path: "/logs", icon: Terminal, label: "Logs" },
 ];
