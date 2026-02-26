@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import axios from "axios";
-import { Send, Bot, User, RefreshCw, MessageSquare } from "lucide-react";
+import { Send, Bot, User, RefreshCw, MessageSquare, UserCheck, BotOff } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { ScrollArea } from "../components/ui/scroll-area";
 import { Separator } from "../components/ui/separator";
 import { Badge } from "../components/ui/badge";
+import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
