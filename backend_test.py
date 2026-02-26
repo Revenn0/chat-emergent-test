@@ -79,11 +79,17 @@ class WhatsAppBotAPITester:
 
     def test_wa_status_api(self):
         """Test WhatsApp status endpoint"""
+        auth_headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.test_session_token}'
+        }
+        
         success, response = self.run_test(
-            "WhatsApp Status",
+            "WhatsApp Status (Authenticated)",
             "GET",
             "api/wa/status",
-            200
+            200,
+            headers=auth_headers
         )
         if success:
             required_fields = ['status', 'connected']
@@ -95,11 +101,17 @@ class WhatsAppBotAPITester:
 
     def test_wa_qr_api(self):
         """Test WhatsApp QR code endpoint"""
+        auth_headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.test_session_token}'
+        }
+        
         success, response = self.run_test(
-            "WhatsApp QR Code",
+            "WhatsApp QR Code (Authenticated)",
             "GET",
             "api/wa/qr",
-            200
+            200,
+            headers=auth_headers
         )
         if success:
             if 'qr' not in response:
