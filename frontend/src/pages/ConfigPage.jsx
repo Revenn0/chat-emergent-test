@@ -156,7 +156,7 @@ export default function ConfigPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await axios.post(`${API}/config`, config);
+      await axios.post(`${API}/config`, config, { withCredentials: true });
       toast.success("Settings saved successfully.");
     } catch {
       toast.error("Failed to save settings. Please try again.");
