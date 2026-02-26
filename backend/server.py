@@ -31,10 +31,34 @@ logger = logging.getLogger(__name__)
 # ---- Pydantic Models ----
 
 class BotConfig(BaseModel):
-    system_prompt: str = "Você é um assistente virtual prestativo e amigável. Responda em português de forma clara e concisa."
+    # Identity
+    bot_name: str = "AI Bot"
+    greeting_message: str = "Olá! Sou um assistente virtual. Como posso ajudar?"
+    fallback_message: str = "Desculpe, não entendi. Pode reformular sua pergunta?"
+    # Model
     model_provider: str = "openai"
     model_name: str = "gpt-4o"
-    bot_name: str = "AI Bot"
+    temperature: float = 0.7
+    max_tokens: int = 1024
+    top_p: float = 1.0
+    system_prompt: str = "Você é um assistente virtual prestativo e amigável. Responda em português de forma clara e concisa."
+    # Behavior
+    language: str = "pt-BR"
+    tone: str = "friendly"
+    response_length: str = "normal"
+    # Context
+    business_context: str = ""
+    faq_text: str = ""
+    # Security
+    rate_limit_enabled: bool = False
+    rate_limit_msgs: int = 10
+    rate_limit_window_minutes: int = 1
+    blocked_words: List[str] = []
+    blocked_contacts: List[str] = []
+    schedule_enabled: bool = False
+    schedule_start: str = "09:00"
+    schedule_end: str = "18:00"
+    outside_hours_message: str = "Estamos fora do horário de atendimento. Retornaremos em breve."
     updated_at: Optional[str] = None
 
 class MessageModel(BaseModel):
