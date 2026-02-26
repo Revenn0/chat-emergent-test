@@ -478,6 +478,7 @@ class WhatsAppBotAPITester:
             self.test_stats_api,
             self.test_logs_api,
             self.test_conversations_api,
+            self.test_knowledge_base_apis,
         ]
 
         for test_method in test_methods:
