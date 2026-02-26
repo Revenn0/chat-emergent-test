@@ -273,14 +273,63 @@ class WhatsAppBotAPITester:
         return success
 
     def test_root_api(self):
-        """Test root API endpoint"""
+        """Test root API endpoint returns WhatsApp 365 Bot message"""
         success, response = self.run_test(
-            "Root API",
+            "Root API - WhatsApp 365 Bot",
             "GET",
             "api/",
             200
         )
+        if success:
+            # Verify the response contains the correct message
+            if response.get('message') != 'WhatsApp 365 Bot API':
+                print(f"❌ Expected 'WhatsApp 365 Bot API' message, got: {response.get('message')}")
+                return False
+            print(f"✅ Correct WhatsApp 365 Bot API message returned")
         return success
+
+    def test_auth_endpoints(self):
+        """Test authentication endpoints"""
+        # Test 1: GET /api/auth/me without cookie should return 401
+        success_unauth, _ = self.run_test(
+            "Auth Me - Unauthenticated (Should Return 401)",
+            "GET",
+            "api/auth/me",
+            401
+        )
+        
+        if not success_unauth:
+            return False
+        
+        # Test 2: GET /api/auth/me with valid session token should return 200
+        auth_headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.test_session_token}'
+        }
+        
+        success_auth, user_data = self.run_test(
+            "Auth Me - Authenticated with Bearer Token",
+            "GET", 
+            "api/auth/me",
+            200,
+            headers=auth_headers
+        )
+        
+        if success_auth:
+            # Verify user data structure
+            required_fields = ['user_id', 'email', 'name']
+            for field in required_fields:
+                if field not in user_data:
+                    print(f"❌ Missing required user field: {field}")
+                    return False
+            
+            if user_data['user_id'] != self.test_user_id:
+                print(f"❌ User ID mismatch. Expected: {self.test_user_id}, Got: {user_data['user_id']}")
+                return False
+            
+            print(f"✅ Authenticated user data correct: {user_data['email']}")
+        
+        return success_unauth and success_auth
 
     def test_knowledge_base_apis(self):
         """Test Knowledge Base APIs"""
