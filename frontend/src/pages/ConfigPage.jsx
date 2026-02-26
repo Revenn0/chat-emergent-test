@@ -27,40 +27,42 @@ const MODELS = [
 ];
 
 const LANGUAGES = [
-  { value: "pt-BR", label: "Português (Brasil)" },
+  { value: "en-GB", label: "English (UK)" },
   { value: "en-US", label: "English (US)" },
-  { value: "es", label: "Español" },
-  { value: "fr", label: "Français" },
-  { value: "auto", label: "Automático (detectar idioma)" },
+  { value: "pt-BR", label: "Portuguese (Brazil)" },
+  { value: "es", label: "Spanish" },
+  { value: "fr", label: "French" },
+  { value: "de", label: "German" },
+  { value: "auto", label: "Auto-detect language" },
 ];
 
 const TONES = [
-  { value: "friendly", label: "Amigável e informal" },
-  { value: "professional", label: "Profissional e formal" },
-  { value: "technical", label: "Técnico e direto" },
-  { value: "empathetic", label: "Empático e acolhedor" },
+  { value: "friendly", label: "Friendly and informal" },
+  { value: "professional", label: "Professional and formal" },
+  { value: "technical", label: "Technical and concise" },
+  { value: "empathetic", label: "Empathetic and supportive" },
 ];
 
 const RESPONSE_LENGTHS = [
-  { value: "concise", label: "Conciso (1-2 frases)" },
-  { value: "normal", label: "Normal (1-3 parágrafos)" },
-  { value: "detailed", label: "Detalhado (completo)" },
+  { value: "concise", label: "Concise (1–2 sentences)" },
+  { value: "normal", label: "Normal (1–3 paragraphs)" },
+  { value: "detailed", label: "Detailed (comprehensive)" },
 ];
 
 const defaultConfig = {
   bot_name: "AI Bot",
-  greeting_message: "Olá! Sou um assistente virtual. Como posso ajudar?",
+  greeting_message: "Hello! I'm a virtual assistant. How can I help you?",
   avatar_emoji: "🤖",
   model_provider: "openai",
   model_name: "gpt-4o",
   temperature: 0.7,
   max_tokens: 1024,
   top_p: 1.0,
-  system_prompt: "Você é um assistente virtual prestativo e amigável. Responda em português de forma clara e concisa.",
-  language: "pt-BR",
+  system_prompt: "You are a helpful and friendly virtual assistant. Respond clearly and concisely.",
+  language: "en-GB",
   tone: "friendly",
   response_length: "normal",
-  fallback_message: "Desculpe, não entendi. Pode reformular sua pergunta?",
+  fallback_message: "I'm sorry, I didn't quite understand that. Could you rephrase your question?",
   business_context: "",
   faq_text: "",
   rate_limit_enabled: false,
@@ -71,7 +73,7 @@ const defaultConfig = {
   schedule_enabled: false,
   schedule_start: "09:00",
   schedule_end: "18:00",
-  outside_hours_message: "Estamos fora do horário de atendimento. Retornaremos em breve.",
+  outside_hours_message: "We're currently outside business hours. We'll be back shortly.",
 };
 
 function SettingRow({ label, description, children }) {
@@ -149,9 +151,9 @@ export default function ConfigPage() {
     setSaving(true);
     try {
       await axios.post(`${API}/config`, config);
-      toast.success("Configurações salvas com sucesso.");
+      toast.success("Settings saved successfully.");
     } catch {
-      toast.error("Erro ao salvar. Tente novamente.");
+      toast.error("Failed to save settings. Please try again.");
     }
     setSaving(false);
   };
@@ -164,66 +166,64 @@ export default function ConfigPage() {
     );
   }
 
-  const selectedModel = MODELS.find((m) => m.provider === config.model_provider && m.name === config.model_name);
-
   return (
     <div className="p-6 max-w-3xl space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold">Configurações do agente</h1>
-          <p className="text-sm text-muted-foreground">Personalize identidade, IA, comportamento e segurança</p>
+          <h1 className="text-lg font-semibold">Agent Settings</h1>
+          <p className="text-sm text-muted-foreground">Customise identity, AI model, behaviour, and security</p>
         </div>
         <Button onClick={handleSave} disabled={saving} size="sm" data-testid="save-config-btn">
           {saving ? <Loader2 size={13} className="mr-1.5 animate-spin" /> : <Save size={13} className="mr-1.5" />}
-          {saving ? "Salvando..." : "Salvar"}
+          {saving ? "Saving..." : "Save"}
         </Button>
       </div>
 
       <Tabs defaultValue="identity">
         <TabsList className="grid w-full grid-cols-5 h-8">
-          <TabsTrigger value="identity" className="text-xs">Identidade</TabsTrigger>
-          <TabsTrigger value="model" className="text-xs">Modelo IA</TabsTrigger>
-          <TabsTrigger value="behavior" className="text-xs">Comportamento</TabsTrigger>
-          <TabsTrigger value="context" className="text-xs">Contexto</TabsTrigger>
-          <TabsTrigger value="security" className="text-xs">Segurança</TabsTrigger>
+          <TabsTrigger value="identity" className="text-xs">Identity</TabsTrigger>
+          <TabsTrigger value="model" className="text-xs">AI Model</TabsTrigger>
+          <TabsTrigger value="behavior" className="text-xs">Behaviour</TabsTrigger>
+          <TabsTrigger value="context" className="text-xs">Context</TabsTrigger>
+          <TabsTrigger value="security" className="text-xs">Security</TabsTrigger>
         </TabsList>
 
         {/* ── IDENTITY ── */}
         <TabsContent value="identity">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Identidade do bot</CardTitle>
-              <CardDescription className="text-xs">Nome, saudação e apresentação</CardDescription>
+              <CardTitle className="text-sm font-medium">Bot identity</CardTitle>
+              <CardDescription className="text-xs">Name, greeting, and presentation</CardDescription>
             </CardHeader>
             <Separator />
             <CardContent className="pt-0 divide-y divide-border">
               <div className="py-4 space-y-1.5">
-                <Label className="text-sm">Nome do bot</Label>
+                <Label className="text-sm">Bot name</Label>
                 <Input
                   value={config.bot_name}
                   onChange={(e) => set("bot_name", e.target.value)}
-                  placeholder="Ex: Assistente Virtual"
+                  placeholder="e.g. Virtual Assistant"
                   className="text-sm"
                   data-testid="bot-name-input"
                 />
               </div>
               <div className="py-4 space-y-1.5">
-                <Label className="text-sm">Mensagem de boas-vindas</Label>
-                <p className="text-xs text-muted-foreground">Enviada automaticamente ao primeiro contato</p>
+                <Label className="text-sm">Welcome message</Label>
+                <p className="text-xs text-muted-foreground">Sent automatically on first contact</p>
                 <Textarea
                   value={config.greeting_message}
                   onChange={(e) => set("greeting_message", e.target.value)}
-                  placeholder="Olá! Como posso ajudar?"
+                  placeholder="Hello! How can I help you?"
                   className="text-sm min-h-[80px] resize-none"
                 />
               </div>
               <div className="py-4 space-y-1.5">
-                <Label className="text-sm">Mensagem de fallback</Label>
-                <p className="text-xs text-muted-foreground">Quando o bot não entender a mensagem</p>
+                <Label className="text-sm">Fallback message</Label>
+                <p className="text-xs text-muted-foreground">When the bot doesn't understand the message</p>
                 <Input
                   value={config.fallback_message}
                   onChange={(e) => set("fallback_message", e.target.value)}
-                  placeholder="Desculpe, não entendi..."
+                  placeholder="I'm sorry, I didn't understand..."
                   className="text-sm"
                 />
               </div>
@@ -235,13 +235,13 @@ export default function ConfigPage() {
         <TabsContent value="model">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Modelo de linguagem</CardTitle>
-              <CardDescription className="text-xs">Provedor, modelo e parâmetros de geração</CardDescription>
+              <CardTitle className="text-sm font-medium">Language model</CardTitle>
+              <CardDescription className="text-xs">Provider, model, and generation parameters</CardDescription>
             </CardHeader>
             <Separator />
             <CardContent className="pt-0 divide-y divide-border">
               <div className="py-4 space-y-1.5">
-                <Label className="text-sm">Modelo</Label>
+                <Label className="text-sm">Model</Label>
                 <Select
                   value={`${config.model_provider}::${config.model_name}`}
                   onValueChange={(v) => {
@@ -275,7 +275,7 @@ export default function ConfigPage() {
                   onValueChange={([v]) => set("temperature", v)}
                   className="py-1"
                 />
-                <p className="text-xs text-muted-foreground">Controla criatividade. 0 = preciso, 2 = criativo</p>
+                <p className="text-xs text-muted-foreground">Controls creativity. 0 = precise, 2 = creative</p>
               </div>
 
               <div className="py-4 space-y-2">
@@ -289,7 +289,7 @@ export default function ConfigPage() {
                   onValueChange={([v]) => set("top_p", v)}
                   className="py-1"
                 />
-                <p className="text-xs text-muted-foreground">Diversidade dos tokens. Recomendado: 1.0</p>
+                <p className="text-xs text-muted-foreground">Token diversity. Recommended: 1.0</p>
               </div>
 
               <div className="py-4 space-y-1.5">
@@ -303,7 +303,7 @@ export default function ConfigPage() {
                   onValueChange={([v]) => set("max_tokens", v)}
                   className="py-1"
                 />
-                <p className="text-xs text-muted-foreground">Tamanho máximo da resposta gerada</p>
+                <p className="text-xs text-muted-foreground">Maximum length of the generated response</p>
               </div>
 
               <div className="py-4 space-y-1.5">
@@ -311,27 +311,27 @@ export default function ConfigPage() {
                 <Textarea
                   value={config.system_prompt}
                   onChange={(e) => set("system_prompt", e.target.value)}
-                  placeholder="Você é um assistente..."
+                  placeholder="You are a helpful assistant..."
                   className="text-sm min-h-[120px] resize-none font-mono"
                   data-testid="system-prompt-input"
                 />
-                <p className="text-xs text-muted-foreground">Instrução inicial enviada ao modelo em cada conversa</p>
+                <p className="text-xs text-muted-foreground">Initial instruction sent to the model for every conversation</p>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* ── BEHAVIOR ── */}
+        {/* ── BEHAVIOUR ── */}
         <TabsContent value="behavior">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Comportamento</CardTitle>
-              <CardDescription className="text-xs">Idioma, tom e estilo de resposta</CardDescription>
+              <CardTitle className="text-sm font-medium">Behaviour</CardTitle>
+              <CardDescription className="text-xs">Language, tone, and response style</CardDescription>
             </CardHeader>
             <Separator />
             <CardContent className="pt-0 divide-y divide-border">
               <div className="py-4 space-y-1.5">
-                <Label className="text-sm">Idioma das respostas</Label>
+                <Label className="text-sm">Response language</Label>
                 <Select value={config.language} onValueChange={(v) => set("language", v)}>
                   <SelectTrigger className="text-sm">
                     <SelectValue />
@@ -345,7 +345,7 @@ export default function ConfigPage() {
               </div>
 
               <div className="py-4 space-y-1.5">
-                <Label className="text-sm">Tom de voz</Label>
+                <Label className="text-sm">Tone of voice</Label>
                 <Select value={config.tone} onValueChange={(v) => set("tone", v)}>
                   <SelectTrigger className="text-sm">
                     <SelectValue />
@@ -359,7 +359,7 @@ export default function ConfigPage() {
               </div>
 
               <div className="py-4 space-y-1.5">
-                <Label className="text-sm">Tamanho das respostas</Label>
+                <Label className="text-sm">Response length</Label>
                 <Select value={config.response_length} onValueChange={(v) => set("response_length", v)}>
                   <SelectTrigger className="text-sm">
                     <SelectValue />
@@ -379,28 +379,28 @@ export default function ConfigPage() {
         <TabsContent value="context">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Contexto do negócio</CardTitle>
-              <CardDescription className="text-xs">Informações que o bot usa para responder melhor</CardDescription>
+              <CardTitle className="text-sm font-medium">Business context</CardTitle>
+              <CardDescription className="text-xs">Information the bot uses to respond more accurately</CardDescription>
             </CardHeader>
             <Separator />
             <CardContent className="pt-0 divide-y divide-border">
               <div className="py-4 space-y-1.5">
-                <Label className="text-sm">Sobre o negócio / empresa</Label>
-                <p className="text-xs text-muted-foreground">Descreva sua empresa, produtos e serviços para o bot entender o contexto</p>
+                <Label className="text-sm">About your business</Label>
+                <p className="text-xs text-muted-foreground">Describe your company, products, and services so the bot understands the context</p>
                 <Textarea
                   value={config.business_context}
                   onChange={(e) => set("business_context", e.target.value)}
-                  placeholder="Ex: Somos uma loja de eletrônicos especializada em... Nossos produtos incluem... Nosso diferencial é..."
+                  placeholder="e.g. We are an electronics retailer specialising in... Our products include... Our key differentiator is..."
                   className="text-sm min-h-[120px] resize-none"
                 />
               </div>
               <div className="py-4 space-y-1.5">
-                <Label className="text-sm">FAQ — Perguntas frequentes</Label>
-                <p className="text-xs text-muted-foreground">Liste perguntas e respostas comuns. O bot usará como referência.</p>
+                <Label className="text-sm">FAQ — Frequently asked questions</Label>
+                <p className="text-xs text-muted-foreground">List questions and answers. The bot will use these as a reference.</p>
                 <Textarea
                   value={config.faq_text}
                   onChange={(e) => set("faq_text", e.target.value)}
-                  placeholder={"P: Qual o horário de funcionamento?\nR: Segunda a sexta, 9h às 18h.\n\nP: Como faço uma troca?\nR: ..."}
+                  placeholder={"Q: What are your opening hours?\nA: Monday to Friday, 9am to 6pm.\n\nQ: How do I make a return?\nA: ..."}
                   className="text-sm min-h-[160px] resize-none font-mono"
                 />
               </div>
@@ -412,15 +412,15 @@ export default function ConfigPage() {
         <TabsContent value="security">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Segurança e limites</CardTitle>
-              <CardDescription className="text-xs">Rate limiting, bloqueios e horário de atendimento</CardDescription>
+              <CardTitle className="text-sm font-medium">Security &amp; limits</CardTitle>
+              <CardDescription className="text-xs">Rate limiting, blocking, and business hours</CardDescription>
             </CardHeader>
             <Separator />
             <CardContent className="pt-0 divide-y divide-border">
               {/* Rate limit */}
               <SettingRow
-                label="Limite de mensagens"
-                description="Limitar quantas mensagens um contato pode enviar por período"
+                label="Message rate limit"
+                description="Limit how many messages a contact can send per time period"
               >
                 <Switch
                   checked={config.rate_limit_enabled}
@@ -433,7 +433,7 @@ export default function ConfigPage() {
                 <div className="py-4 space-y-4">
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <Label className="text-sm">Máximo de mensagens</Label>
+                      <Label className="text-sm">Maximum messages</Label>
                       <Badge variant="secondary" className="text-xs font-mono">{config.rate_limit_msgs}</Badge>
                     </div>
                     <Slider
@@ -445,7 +445,7 @@ export default function ConfigPage() {
                   </div>
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <Label className="text-sm">Janela de tempo (minutos)</Label>
+                      <Label className="text-sm">Time window (minutes)</Label>
                       <Badge variant="secondary" className="text-xs font-mono">{config.rate_limit_window_minutes} min</Badge>
                     </div>
                     <Slider
@@ -455,7 +455,7 @@ export default function ConfigPage() {
                       className="py-1"
                     />
                     <p className="text-xs text-muted-foreground">
-                      O bot responde no máximo {config.rate_limit_msgs} msg a cada {config.rate_limit_window_minutes} min por contato
+                      The bot will respond to at most {config.rate_limit_msgs} messages every {config.rate_limit_window_minutes} minute(s) per contact
                     </p>
                   </div>
                 </div>
@@ -463,30 +463,30 @@ export default function ConfigPage() {
 
               {/* Blocked words */}
               <div className="py-4 space-y-2">
-                <Label className="text-sm">Palavras bloqueadas</Label>
-                <p className="text-xs text-muted-foreground">O bot ignorará mensagens contendo estas palavras</p>
+                <Label className="text-sm">Blocked words</Label>
+                <p className="text-xs text-muted-foreground">The bot will ignore messages containing these words</p>
                 <TagInput
                   values={config.blocked_words}
                   onChange={(v) => set("blocked_words", v)}
-                  placeholder="Adicionar palavra..."
+                  placeholder="Add a word..."
                 />
               </div>
 
               {/* Blocked contacts */}
               <div className="py-4 space-y-2">
-                <Label className="text-sm">Contatos bloqueados</Label>
-                <p className="text-xs text-muted-foreground">Números que o bot não deve responder (ex: 5511999...@s.whatsapp.net)</p>
+                <Label className="text-sm">Blocked contacts</Label>
+                <p className="text-xs text-muted-foreground">Numbers the bot should not reply to (e.g. 4477...@s.whatsapp.net)</p>
                 <TagInput
                   values={config.blocked_contacts}
                   onChange={(v) => set("blocked_contacts", v)}
-                  placeholder="Número@s.whatsapp.net"
+                  placeholder="Number@s.whatsapp.net"
                 />
               </div>
 
               {/* Schedule */}
               <SettingRow
-                label="Horário de atendimento"
-                description="O bot só responde dentro do horário definido"
+                label="Business hours"
+                description="The bot will only respond within the defined hours"
               >
                 <Switch
                   checked={config.schedule_enabled}
@@ -499,7 +499,7 @@ export default function ConfigPage() {
                 <div className="py-4 space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-sm">Início</Label>
+                      <Label className="text-sm">Opens at</Label>
                       <Input
                         type="time"
                         value={config.schedule_start}
@@ -509,7 +509,7 @@ export default function ConfigPage() {
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-sm">Fim</Label>
+                      <Label className="text-sm">Closes at</Label>
                       <Input
                         type="time"
                         value={config.schedule_end}
@@ -520,11 +520,11 @@ export default function ConfigPage() {
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-sm">Mensagem fora do horário</Label>
+                    <Label className="text-sm">Out-of-hours message</Label>
                     <Input
                       value={config.outside_hours_message}
                       onChange={(e) => set("outside_hours_message", e.target.value)}
-                      placeholder="Estamos fora do horário..."
+                      placeholder="We're currently outside business hours..."
                       className="text-sm"
                       data-testid="outside-hours-msg"
                     />
@@ -539,7 +539,7 @@ export default function ConfigPage() {
       <div className="flex justify-end pb-6">
         <Button onClick={handleSave} disabled={saving} data-testid="save-config-btn-bottom">
           {saving ? <Loader2 size={13} className="mr-1.5 animate-spin" /> : <Save size={13} className="mr-1.5" />}
-          {saving ? "Salvando..." : "Salvar configurações"}
+          {saving ? "Saving..." : "Save settings"}
         </Button>
       </div>
     </div>
