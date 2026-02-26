@@ -64,11 +64,24 @@ export default function ChatsPage() {
     if (!manualMsg.trim() || !selectedJid) return;
     setSendingMsg(true);
     try {
-      await axios.post(`${API}/wa/send`, { jid: selectedJid, message: manualMsg });
+      await axios.post(`${API}/wa/send`, { jid: selectedJid, message: manualMsg }, { withCredentials: true });
       setManualMsg("");
       setTimeout(() => loadMessages(selectedJid), 1000);
     } catch {}
     setSendingMsg(false);
+  };
+
+  const handleTakeover = async (active) => {
+    if (!selectedJid) return;
+    setTakingOver(true);
+    try {
+      await axios.post(`${API}/conversations/${encodeURIComponent(selectedJid)}/takeover`, { active }, { withCredentials: true });
+      await loadConversations();
+      toast.success(active ? "Took control of conversation. Bot is now silent." : "Released to bot. AI will respond again.");
+    } catch {
+      toast.error("Failed to update takeover status.");
+    }
+    setTakingOver(false);
   };
 
   const selectedConv = conversations.find((c) => c.jid === selectedJid);
