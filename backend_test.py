@@ -14,6 +14,9 @@ class WhatsAppBotAPITester:
         self.tests_run = 0
         self.tests_passed = 0
         self.test_results = []
+        # Test session created from MongoDB
+        self.test_session_token = "test_session_1772108495690"
+        self.test_user_id = "test-user-1772108495690"
 
     def run_test(self, name, method, endpoint, expected_status, data=None, headers=None):
         """Run a single API test"""
