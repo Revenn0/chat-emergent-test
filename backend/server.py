@@ -239,7 +239,6 @@ async def handle_incoming_message(msg: IncomingMessage):
         enriched_prompt += f"\n\nPerguntas frequentes (use como referência):\n{config.faq_text}"
 
     # Create LLM chat
-    from emergentintegrations.llm.chat import LlmChat, UserMessage
     chat = LlmChat(
         api_key=EMERGENT_LLM_KEY,
         session_id=f"wa_{jid}",
