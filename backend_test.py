@@ -111,18 +111,86 @@ class WhatsAppBotAPITester:
         )
         
         if get_success:
-            required_fields = ['system_prompt', 'model_provider', 'model_name', 'bot_name']
+            # Check all new expanded config fields from redesign
+            required_fields = [
+                # Identity fields
+                'bot_name', 'greeting_message', 'fallback_message',
+                # Model fields  
+                'model_provider', 'model_name', 'temperature', 'max_tokens', 'top_p', 'system_prompt',
+                # Behavior fields
+                'language', 'tone', 'response_length',
+                # Context fields
+                'business_context', 'faq_text',
+                # Security fields
+                'rate_limit_enabled', 'rate_limit_msgs', 'rate_limit_window_minutes',
+                'blocked_words', 'blocked_contacts', 'schedule_enabled', 'schedule_start', 'schedule_end'
+            ]
             for field in required_fields:
                 if field not in config_data:
                     print(f"❌ Missing required config field: {field}")
                     return False
+            
+            # Check data types for numeric fields
+            numeric_checks = {
+                'temperature': (float, (0.0, 2.0)),
+                'top_p': (float, (0.1, 1.0)), 
+                'max_tokens': (int, (128, 4096)),
+                'rate_limit_msgs': (int, (1, 60)),
+                'rate_limit_window_minutes': (int, (1, 60))
+            }
+            
+            for field, (expected_type, valid_range) in numeric_checks.items():
+                if not isinstance(config_data[field], expected_type):
+                    print(f"❌ Config field {field} should be {expected_type.__name__}, got {type(config_data[field])}")
+                    return False
+                if not (valid_range[0] <= config_data[field] <= valid_range[1]):
+                    print(f"❌ Config field {field} should be between {valid_range}, got {config_data[field]}")
+                    return False
+            
+            # Check boolean fields
+            boolean_fields = ['rate_limit_enabled', 'schedule_enabled']
+            for field in boolean_fields:
+                if not isinstance(config_data[field], bool):
+                    print(f"❌ Config field {field} should be boolean, got {type(config_data[field])}")
+                    return False
+            
+            # Check array fields
+            array_fields = ['blocked_words', 'blocked_contacts']
+            for field in array_fields:
+                if not isinstance(config_data[field], list):
+                    print(f"❌ Config field {field} should be array, got {type(config_data[field])}")
+                    return False
         
-        # Test POST config (save)
+        # Test POST config (save) with comprehensive config
         test_config = {
-            "system_prompt": "Test prompt for WhatsApp bot",
-            "model_provider": "openai", 
+            # Identity
+            "bot_name": "Test Bot Updated",
+            "greeting_message": "Hello! I'm a test bot.",
+            "fallback_message": "Sorry, I don't understand.",
+            # Model
+            "model_provider": "openai",
             "model_name": "gpt-4o",
-            "bot_name": "Test Bot"
+            "temperature": 0.8,
+            "max_tokens": 512,
+            "top_p": 0.9,
+            "system_prompt": "You are a helpful assistant for testing.",
+            # Behavior
+            "language": "en-US", 
+            "tone": "professional",
+            "response_length": "concise",
+            # Context
+            "business_context": "We are a test company.",
+            "faq_text": "Q: Test question?\nA: Test answer.",
+            # Security
+            "rate_limit_enabled": True,
+            "rate_limit_msgs": 5,
+            "rate_limit_window_minutes": 2,
+            "blocked_words": ["spam", "test"],
+            "blocked_contacts": ["123@s.whatsapp.net"],
+            "schedule_enabled": True,
+            "schedule_start": "09:00",
+            "schedule_end": "17:00",
+            "outside_hours_message": "We're closed now."
         }
         
         post_success, _ = self.run_test(
@@ -132,6 +200,24 @@ class WhatsAppBotAPITester:
             200,
             data=test_config
         )
+        
+        # Verify the config was actually saved by fetching it again
+        if post_success:
+            verify_success, verify_data = self.run_test(
+                "Verify Config Save",
+                "GET",
+                "api/config", 
+                200
+            )
+            
+            if verify_success:
+                # Check a few key fields were updated
+                key_fields_to_check = ['bot_name', 'temperature', 'language', 'tone']
+                for field in key_fields_to_check:
+                    if verify_data.get(field) != test_config[field]:
+                        print(f"❌ Config field {field} was not saved correctly. Expected: {test_config[field]}, Got: {verify_data.get(field)}")
+                        return False
+                print("✅ Config save verification passed")
         
         return get_success and post_success
 
