@@ -179,6 +179,12 @@ export default function ChatsPage() {
             </div>
 
             <ScrollArea className="flex-1 bg-muted/20">
+              {selectedConv?.taken_over && (
+                <div className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-50 border-b border-orange-100">
+                  <UserCheck size={13} className="text-orange-600" />
+                  <p className="text-xs text-orange-700 font-medium">Live agent mode — bot is silent. Your messages go directly to the customer.</p>
+                </div>
+              )}
               <div className="px-4 py-4 space-y-3 max-w-2xl mx-auto">
                 {messages.length === 0 && (
                   <p className="text-center text-sm text-muted-foreground py-8">No messages</p>
