@@ -7,6 +7,7 @@ import ConnectionPage from "./pages/ConnectionPage";
 import ChatsPage from "./pages/ChatsPage";
 import ConfigPage from "./pages/ConfigPage";
 import LogsPage from "./pages/LogsPage";
+import KnowledgePage from "./pages/KnowledgePage";
 
 function App() {
   return (
@@ -17,12 +18,13 @@ function App() {
             <Route path="/" element={<DashboardPage />} />
             <Route path="/connect" element={<ConnectionPage />} />
             <Route path="/chats" element={<ChatsPage />} />
+            <Route path="/knowledge" element={<KnowledgePage />} />
             <Route path="/config" element={<ConfigPage />} />
             <Route path="/logs" element={<LogsPage />} />
           </Routes>
         </Layout>
       </BrowserRouter>
-      <Toaster theme="dark" />
+      <Toaster theme="light" />
     </div>
   );
 }
