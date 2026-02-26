@@ -368,7 +368,12 @@ async def get_logs(limit: int = 100):
     all_logs.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
     return all_logs[:limit]
 
-@api_router.get("/stats")
+@api_router.delete("/logs")
+async def clear_logs():
+    await db.logs.delete_many({})
+    return {"ok": True}
+
+
 async def get_stats():
     total_convs = await db.conversations.count_documents({})
     total_msgs = await db.messages.count_documents({})
