@@ -72,6 +72,8 @@ class KnowledgeDoc(BaseModel):
     char_count: int
     enabled: bool = True
     uploaded_at: str
+
+class MessageModel(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     from_jid: str
     push_name: str
