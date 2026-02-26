@@ -192,8 +192,11 @@ export default function IntegrationsPage() {
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <Table size={15} className="text-muted-foreground" /> Google Sheets
+            {gmailStatus.connected && (
+              <Badge variant="outline" className="text-[10px] bg-green-50 text-green-700 border-green-200">Active</Badge>
+            )}
           </CardTitle>
-          <CardDescription className="text-xs">Create and manage spreadsheets linked to your account</CardDescription>
+          <CardDescription className="text-xs">Create and manage spreadsheets linked to your Google account</CardDescription>
         </CardHeader>
         <Separator />
         <CardContent className="pt-4 space-y-4">
