@@ -494,15 +494,21 @@ class WhatsAppBotAPITester:
         return success_unauth and success_auth
 
     def test_knowledge_base_apis(self):
-        """Test Knowledge Base APIs"""
+        """Test Knowledge Base APIs with authentication"""
         print("\n📚 Testing Knowledge Base endpoints...")
+        
+        auth_headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.test_session_token}'
+        }
         
         # Test 1: GET /api/knowledge (list documents)
         list_success, initial_docs = self.run_test(
-            "List Knowledge Documents",
+            "List Knowledge Documents (Authenticated)",
             "GET",
             "api/knowledge",
-            200
+            200,
+            headers=auth_headers
         )
         if not list_success:
             return False
@@ -516,16 +522,19 @@ class WhatsAppBotAPITester:
         # Test 2: Create a test TXT file for upload
         test_content = "This is a test knowledge base document.\n\nIt contains sample information about our test company.\n\nWe provide excellent testing services."
         
-        # Test 3: POST /api/knowledge/upload (upload document)
+        # Test 3: POST /api/knowledge/upload (upload document) with auth
         files = {'file': ('test_knowledge.txt', test_content.encode(), 'text/plain')}
         
         try:
-            # Use requests to upload file
+            # Use requests to upload file with auth header
             url = f"{self.base_url}/api/knowledge/upload"
-            print(f"\n🔍 Testing File Upload...")
+            print(f"\n🔍 Testing File Upload (Authenticated)...")
             print(f"   URL: POST {url}")
             
-            response = requests.post(url, files=files, timeout=30)
+            # For file upload, we need to use headers without Content-Type to let requests set it with boundary
+            upload_headers = {'Authorization': f'Bearer {self.test_session_token}'}
+            
+            response = requests.post(url, files=files, headers=upload_headers, timeout=30)
             
             if response.status_code == 200:
                 self.tests_passed += 1
@@ -553,12 +562,14 @@ class WhatsAppBotAPITester:
         
         self.tests_run += 1
         
+        # Continue with other tests using authenticated headers...
         # Test 4: Verify document appears in list
         list_success_2, updated_docs = self.run_test(
-            "Verify Document in List",
+            "Verify Document in List (Authenticated)",
             "GET", 
             "api/knowledge",
-            200
+            200,
+            headers=auth_headers
         )
         if not list_success_2:
             return False
@@ -573,10 +584,11 @@ class WhatsAppBotAPITester:
         
         # Test 5: GET /api/knowledge/{id}/preview (preview document)
         preview_success, preview_data = self.run_test(
-            "Preview Document",
+            "Preview Document (Authenticated)",
             "GET",
             f"api/knowledge/{doc_id}/preview",
-            200
+            200,
+            headers=auth_headers
         )
         if not preview_success:
             return False
@@ -594,10 +606,11 @@ class WhatsAppBotAPITester:
         # Test 6: PATCH /api/knowledge/{id}/toggle (toggle enabled state)
         initial_state = uploaded_doc['enabled']
         toggle_success, toggle_data = self.run_test(
-            "Toggle Document State",
+            "Toggle Document State (Authenticated)",
             "PATCH",
             f"api/knowledge/{doc_id}/toggle",
-            200
+            200,
+            headers=auth_headers
         )
         if not toggle_success:
             return False
@@ -614,20 +627,22 @@ class WhatsAppBotAPITester:
         
         # Test 7: DELETE /api/knowledge/{id} (delete document)
         delete_success, _ = self.run_test(
-            "Delete Document",
+            "Delete Document (Authenticated)",
             "DELETE",
             f"api/knowledge/{doc_id}",
-            200
+            200,
+            headers=auth_headers
         )
         if not delete_success:
             return False
         
         # Test 8: Verify document is removed from list
         final_list_success, final_docs = self.run_test(
-            "Verify Document Deleted",
+            "Verify Document Deleted (Authenticated)",
             "GET",
             "api/knowledge",
-            200
+            200,
+            headers=auth_headers
         )
         if not final_list_success:
             return False
@@ -644,7 +659,8 @@ class WhatsAppBotAPITester:
             "Access Deleted Document (Should Fail)",
             "GET",
             f"api/knowledge/{doc_id}/preview",
-            404
+            404,
+            headers=auth_headers
         )
         
         return error_success
