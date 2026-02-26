@@ -125,6 +125,22 @@ class SendMessageRequest(BaseModel):
     jid: str
     message: str
 
+class WorkflowNode(BaseModel):
+    id: str
+    type: str  # start | message | question | collect | escalate | end
+    title: str
+    content: str = ""
+    branches: List[Dict] = []  # [{label, next_id}]
+    position: int = 0
+
+class WorkflowData(BaseModel):
+    nodes: List[WorkflowNode] = []
+    active: bool = True
+    updated_at: Optional[str] = None
+
+class TakeoverRequest(BaseModel):
+    active: bool
+
 class ActionUpdateRequest(BaseModel):
     status: str
     admin_note: Optional[str] = None
