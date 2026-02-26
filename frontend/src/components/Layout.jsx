@@ -111,6 +111,32 @@ export function Layout({ children }) {
               {isConnected ? "Connected" : isConnecting ? "Awaiting QR" : "Disconnected"}
             </Badge>
           </div>
+
+          {/* AI Toggle */}
+          <button
+            onClick={handleAiToggle}
+            disabled={togglingAi}
+            data-testid="ai-toggle-btn"
+            className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md border transition-colors text-left ${
+              aiEnabled
+                ? "border-green-200 bg-green-50 hover:bg-green-100"
+                : "border-orange-200 bg-orange-50 hover:bg-orange-100"
+            }`}
+          >
+            {togglingAi ? (
+              <Loader2 size={12} className="text-muted-foreground animate-spin flex-shrink-0" />
+            ) : aiEnabled ? (
+              <Zap size={12} className="text-green-600 flex-shrink-0" />
+            ) : (
+              <ZapOff size={12} className="text-orange-500 flex-shrink-0" />
+            )}
+            <span className={`text-[11px] font-medium flex-1 ${aiEnabled ? "text-green-700" : "text-orange-600"}`}>
+              {aiEnabled ? "AI Active" : "AI Paused"}
+            </span>
+            <div className={`w-6 h-3.5 rounded-full relative transition-colors flex-shrink-0 ${aiEnabled ? "bg-green-500" : "bg-orange-400"}`}>
+              <div className={`absolute top-0.5 w-2.5 h-2.5 rounded-full bg-white shadow transition-transform ${aiEnabled ? "translate-x-3" : "translate-x-0.5"}`} />
+            </div>
+          </button>
           {user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
