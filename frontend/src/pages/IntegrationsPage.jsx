@@ -250,10 +250,13 @@ export default function IntegrationsPage() {
       <Dialog open={showCredModal} onOpenChange={setShowCredModal}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-sm font-medium">Enter Google OAuth Credentials</DialogTitle>
+            <DialogTitle className="text-sm font-medium">Connect Google Account</DialogTitle>
           </DialogHeader>
           <Separator />
           <div className="space-y-3 pt-2">
+            <div className="p-3 rounded-md bg-muted/60 border border-border text-xs text-muted-foreground">
+              This will grant access to <strong>Gmail</strong> (email sending) and <strong>Google Sheets</strong> — all in one login.
+            </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Google Client ID</Label>
               <Input value={gmailCredentials.client_id} onChange={(e) => setGmailCredentials((c) => ({ ...c, client_id: e.target.value }))} placeholder="xxxx.apps.googleusercontent.com" className="text-sm font-mono" />
