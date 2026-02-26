@@ -383,6 +383,112 @@ async def get_stats():
 async def root():
     return {"message": "WhatsApp AI Bot Backend"}
 
+# ---- Knowledge Base ----
+
+def extract_text_from_pdf(data: bytes) -> str:
+    text_parts = []
+    with pdfplumber.open(io.BytesIO(data)) as pdf:
+        for page in pdf.pages:
+            t = page.extract_text()
+            if t:
+                text_parts.append(t)
+    return "\n\n".join(text_parts)
+
+def extract_text_from_docx(data: bytes) -> str:
+    doc = python_docx.Document(io.BytesIO(data))
+    return "\n".join(p.text for p in doc.paragraphs if p.text.strip())
+
+def extract_text_from_txt(data: bytes) -> str:
+    for enc in ("utf-8", "latin-1", "cp1252"):
+        try:
+            return data.decode(enc)
+        except Exception:
+            continue
+    return data.decode("utf-8", errors="replace")
+
+@api_router.post("/knowledge/upload")
+async def upload_knowledge_doc(file: UploadFile = File(...)):
+    allowed = {
+        "application/pdf": "pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+        "text/plain": "txt",
+        "text/markdown": "md",
+    }
+    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+    ext_map = {"pdf": "pdf", "docx": "docx", "txt": "txt", "md": "md"}
+
+    if ext not in ext_map:
+        raise HTTPException(status_code=400, detail=f"Unsupported file type: .{ext}. Allowed: PDF, DOCX, TXT, MD")
+
+    data = await file.read()
+    if len(data) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large. Maximum size is 10 MB.")
+
+    try:
+        if ext == "pdf":
+            content = extract_text_from_pdf(data)
+        elif ext == "docx":
+            content = extract_text_from_docx(data)
+        else:
+            content = extract_text_from_txt(data)
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=f"Failed to extract text: {str(e)}")
+
+    if not content.strip():
+        raise HTTPException(status_code=422, detail="No readable text found in the file.")
+
+    doc_id = str(uuid.uuid4())
+    doc = {
+        "id": doc_id,
+        "filename": file.filename,
+        "file_type": ext,
+        "size_bytes": len(data),
+        "char_count": len(content),
+        "content": content,
+        "enabled": True,
+        "uploaded_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.knowledge_docs.insert_one(doc)
+    await add_log("info", f"Knowledge document uploaded: {file.filename} ({len(content)} chars)")
+    return {
+        "id": doc_id,
+        "filename": file.filename,
+        "file_type": ext,
+        "size_bytes": len(data),
+        "char_count": len(content),
+        "enabled": True,
+        "uploaded_at": doc["uploaded_at"],
+    }
+
+@api_router.get("/knowledge", response_model=List[KnowledgeDoc])
+async def list_knowledge_docs():
+    docs = await db.knowledge_docs.find({}, {"_id": 0, "content": 0}).sort("uploaded_at", -1).to_list(100)
+    return docs
+
+@api_router.patch("/knowledge/{doc_id}/toggle")
+async def toggle_knowledge_doc(doc_id: str):
+    doc = await db.knowledge_docs.find_one({"id": doc_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    new_state = not doc.get("enabled", True)
+    await db.knowledge_docs.update_one({"id": doc_id}, {"$set": {"enabled": new_state}})
+    return {"id": doc_id, "enabled": new_state}
+
+@api_router.delete("/knowledge/{doc_id}")
+async def delete_knowledge_doc(doc_id: str):
+    result = await db.knowledge_docs.delete_one({"id": doc_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Document not found")
+    await add_log("info", f"Knowledge document deleted: {doc_id}")
+    return {"ok": True}
+
+@api_router.get("/knowledge/{doc_id}/preview")
+async def preview_knowledge_doc(doc_id: str):
+    doc = await db.knowledge_docs.find_one({"id": doc_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return {"id": doc_id, "filename": doc["filename"], "preview": doc.get("content", "")[:3000]}
+
 app.include_router(api_router)
 app.add_middleware(
     CORSMiddleware,
