@@ -320,6 +320,13 @@ async def handle_incoming_message(msg: IncomingMessage):
     await add_log(user_id, "info", f"Message from {push_name}: {text[:60]}")
     config = await get_bot_config(user_id)
 
+    # Skip if AI is disabled
+    if not config.ai_enabled:
+        await db.messages.insert_one({"id": str(uuid.uuid4()), "user_id": user_id, "from_jid": jid, "push_name": push_name, "text": text, "role": "user", "timestamp": ts})
+        await db.conversations.update_one({"user_id": user_id, "jid": jid}, {"$set": {"last_message": text, "last_timestamp": ts}, "$inc": {"message_count": 1}}, upsert=True)
+        await add_log(user_id, "info", f"[AI PAUSED] Message from {push_name} stored — AI is disabled")
+        return {"reply": None}
+
     # Skip if conversation is taken over by admin
     conv_doc = await db.conversations.find_one({"user_id": user_id, "jid": jid}, {"_id": 0})
     if conv_doc and conv_doc.get("taken_over"):
