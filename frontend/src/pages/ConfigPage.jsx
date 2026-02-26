@@ -496,6 +496,18 @@ export default function ConfigPage() {
             </CardHeader>
             <Separator />
             <CardContent className="pt-0 divide-y divide-border">
+              {/* Strict mode */}
+              <SettingRow
+                label="Strict mode"
+                description="AI only answers questions based on business context, FAQ, and knowledge base. All other questions are declined."
+              >
+                <Switch
+                  checked={config.strict_mode ?? true}
+                  onCheckedChange={(v) => set("strict_mode", v)}
+                  data-testid="strict-mode-switch"
+                />
+              </SettingRow>
+
               {/* Rate limit */}
               <SettingRow
                 label="Message rate limit"
