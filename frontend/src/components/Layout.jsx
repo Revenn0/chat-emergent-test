@@ -113,7 +113,7 @@ export function Layout({ children }) {
                 isConnected ? "bg-green-100 text-green-700 border-green-200" : ""
               }`}
             >
-              {isConnected ? "Conectado" : isConnecting ? "Aguardando" : "Desconectado"}
+              {isConnected ? "Connected" : isConnecting ? "Awaiting QR" : "Disconnected"}
             </Badge>
           </div>
         </div>
