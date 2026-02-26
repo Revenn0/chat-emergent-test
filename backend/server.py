@@ -454,7 +454,7 @@ async def send_message(req: SendMessageRequest, user: User = Depends(get_current
 @api_router.get("/conversations", response_model=List[ConversationModel])
 async def get_conversations(user: User = Depends(get_current_user)):
     convs = await db.conversations.find({"user_id": user.user_id}, {"_id": 0}).sort("last_timestamp", -1).to_list(100)
-    return [ConversationModel(id=c["jid"], jid=c["jid"], push_name=c.get("push_name", c["jid"].split("@")[0]), last_message=c.get("last_message", ""), last_timestamp=c.get("last_timestamp", ""), message_count=c.get("message_count", 0)) for c in convs]
+    return [ConversationModel(id=c["jid"], jid=c["jid"], push_name=c.get("push_name", c["jid"].split("@")[0]), last_message=c.get("last_message", ""), last_timestamp=c.get("last_timestamp", ""), message_count=c.get("message_count", 0), taken_over=c.get("taken_over", False), takeover_by=c.get("takeover_by")) for c in convs]
 
 @api_router.get("/messages/{jid}")
 async def get_messages(jid: str, user: User = Depends(get_current_user)):
