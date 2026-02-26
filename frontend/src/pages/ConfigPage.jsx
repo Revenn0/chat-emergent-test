@@ -186,11 +186,12 @@ export default function ConfigPage() {
       </div>
 
       <Tabs defaultValue="identity">
-        <TabsList className="grid w-full grid-cols-5 h-8">
+        <TabsList className="grid w-full grid-cols-6 h-8">
           <TabsTrigger value="identity" className="text-xs">Identity</TabsTrigger>
           <TabsTrigger value="model" className="text-xs">AI Model</TabsTrigger>
           <TabsTrigger value="behavior" className="text-xs">Behaviour</TabsTrigger>
           <TabsTrigger value="context" className="text-xs">Context</TabsTrigger>
+          <TabsTrigger value="bookings" className="text-xs">Bookings</TabsTrigger>
           <TabsTrigger value="security" className="text-xs">Security</TabsTrigger>
         </TabsList>
 
