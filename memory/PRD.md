@@ -32,7 +32,8 @@ AI-powered WhatsApp chatbot platform using Baileys + QR code pairing. Multi-tena
 - Advanced Settings: 5-tab config page (Identity, AI Model, Behavior, Context, Security)
 - Strict Mode toggle for AI context adherence
 - Booking detection: keywords trigger pending actions
-- Admin Takeover: Take Control / Release to Bot buttons in ChatsPage
+- AI Toggle: button in sidebar (always visible) to activate/pause the AI across all WhatsApp conversations. State persisted in DB. Color-coded: green=active, orange=paused
+- Chat Test page (/chat-test): full chat simulation using real AI pipeline (system prompt, strict mode, workflow, knowledge base, booking detection). Multi-turn conversation with history. Clear button to reset session.
   - Visual "Live Agent" badge + orange banner
   - Bot silences itself when conversation is taken over
 - Visual Workflow Builder (WorkflowPage): node-based step editor
