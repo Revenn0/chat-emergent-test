@@ -106,6 +106,8 @@ class ConversationModel(BaseModel):
     last_message: str
     last_timestamp: str
     message_count: int
+    taken_over: bool = False
+    takeover_by: Optional[str] = None
 
 class IncomingMessage(BaseModel):
     from_: str = Field(alias="from")
