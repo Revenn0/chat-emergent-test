@@ -143,7 +143,7 @@ export default function ConfigPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const resp = await axios.get(`${API}/config`);
+        const resp = await axios.get(`${API}/config`, { withCredentials: true });
         setConfig({ ...defaultConfig, ...resp.data });
       } catch {}
       setLoading(false);
