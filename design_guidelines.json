@@ -1,0 +1,166 @@
+{
+  "project_name": "WhatsApp AI Commander",
+  "design_philosophy": {
+    "name": "The Tactical Communicator",
+    "description": "A high-precision, dark-mode dashboard that feels like a command center. It blends the familiarity of WhatsApp with the aesthetics of a developer's terminal. Functionality is king, but the visual language screams 'Power User'.",
+    "mood": "Cyber-Utility, Dark, Electric, Precision",
+    "theme_strategy": "Dark Mode Only (Mandatory)",
+    "principles": [
+      "Information Density: Use space efficiently but avoid clutter.",
+      "Visual Feedback: Every action (connect, disconnect, save) must have immediate visual confirmation.",
+      "Terminal Aesthetics: Use monospaced fonts for data, logs, and technical status.",
+      "The 'Alive' Interface: Use subtle pulses and glows to indicate active connections."
+    ]
+  },
+  "typography": {
+    "font_family_headings": "JetBrains Mono, monospace",
+    "font_family_body": "Inter, sans-serif",
+    "scale": {
+      "h1": "text-4xl font-bold tracking-tight",
+      "h2": "text-3xl font-bold tracking-tight",
+      "h3": "text-2xl font-semibold tracking-tight",
+      "body": "text-base leading-relaxed",
+      "caption": "text-sm text-muted-foreground",
+      "mono": "font-mono text-sm"
+    },
+    "usage_rules": [
+      "Use 'JetBrains Mono' for all Page Titles, Card Headers, and Metric Values.",
+      "Use 'Inter' for body text, chat messages, and descriptions.",
+      "Status labels (CONNECTED, OFF) must be Uppercase and Mono."
+    ]
+  },
+  "colors": {
+    "palette": {
+      "background": "hsl(224 71% 4%)",
+      "foreground": "hsl(210 40% 98%)",
+      "card": "hsl(222 47% 11%)",
+      "card_foreground": "hsl(210 40% 98%)",
+      "popover": "hsl(222 47% 11%)",
+      "popover_foreground": "hsl(210 40% 98%)",
+      "primary": "hsl(142 70% 50%)",
+      "primary_foreground": "hsl(144.9 80.4% 10%)",
+      "secondary": "hsl(217.2 32.6% 17.5%)",
+      "secondary_foreground": "hsl(210 40% 98%)",
+      "muted": "hsl(217.2 32.6% 17.5%)",
+      "muted_foreground": "hsl(215 20.2% 65.1%)",
+      "accent": "hsl(217.2 32.6% 17.5%)",
+      "accent_foreground": "hsl(210 40% 98%)",
+      "destructive": "hsl(0 62.8% 30.6%)",
+      "destructive_foreground": "hsl(210 40% 98%)",
+      "border": "hsl(217.2 32.6% 17.5%)",
+      "input": "hsl(217.2 32.6% 17.5%)",
+      "ring": "hsl(142 70% 50%)"
+    },
+    "semantic_usage": {
+      "brand_color": "primary (Electric Green)",
+      "status_connected": "text-green-500",
+      "status_disconnected": "text-red-500",
+      "chat_bubble_sent": "bg-primary/20 text-primary-foreground border border-primary/20",
+      "chat_bubble_received": "bg-secondary text-secondary-foreground"
+    }
+  },
+  "layout_structure": {
+    "grid_system": "Bento Grid (Mode B for Dashboards)",
+    "container_padding": "p-6 md:p-8",
+    "spacing_scale": "Standard Tailwind spacing, but double it for section gaps (gap-8)",
+    "sidebar": {
+      "width": "w-64",
+      "style": "Fixed, border-r border-border bg-card/50 backdrop-blur-xl",
+      "collapsed_on_mobile": true
+    },
+    "main_content": {
+      "style": "flex-1 overflow-y-auto bg-background"
+    }
+  },
+  "components": {
+    "cards": {
+      "style": "bg-card border border-border/50 shadow-sm hover:border-primary/50 transition-colors duration-300",
+      "radius": "rounded-lg"
+    },
+    "buttons": {
+      "primary": "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:shadow-[0_0_25px_rgba(34,197,94,0.5)] transition-all",
+      "secondary": "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+      "outline": "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+      "ghost": "hover:bg-accent hover:text-accent-foreground"
+    },
+    "inputs": {
+      "style": "bg-secondary/50 border-input focus:border-primary focus:ring-1 focus:ring-primary transition-all font-mono text-sm"
+    },
+    "status_badge": {
+      "style": "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium font-mono uppercase tracking-wider",
+      "connected": "bg-green-900/30 text-green-400 border border-green-900/50",
+      "disconnected": "bg-red-900/30 text-red-400 border border-red-900/50"
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": "Use 'backdrop-blur-md' on sticky headers and overlays.",
+    "scanlines": "Optional: Add a very subtle scanline overlay on the dashboard background using CSS gradients if possible, or keep it clean.",
+    "glow_effects": "Use drop-shadows on the Primary Action buttons to simulate light emission.",
+    "icons": "Use 'lucide-react'. Stroke width 1.5px for a crisp look."
+  },
+  "motion": {
+    "reduced_motion": "Respect prefers-reduced-motion",
+    "transitions": "transition-all duration-200 ease-in-out",
+    "micro_interactions": {
+      "hover": "translate-y-[-2px] on cards",
+      "click": "scale-95 active:scale-95"
+    },
+    "animations": {
+      "fade_in": "animate-in fade-in duration-500",
+      "slide_in": "animate-in slide-in-from-bottom-4 duration-500"
+    }
+  },
+  "accessibility": {
+    "contrast": "Ensure text-gray-500 is not used on dark backgrounds. Use text-gray-400 or lighter.",
+    "focus_states": "Visible ring-2 ring-primary ring-offset-2 ring-offset-background",
+    "aria_labels": "Required on all icon-only buttons."
+  },
+  "page_specifics": {
+    "connection_page": {
+      "layout": "Centered Card",
+      "elements": [
+        "QR Code Container: Square, centered, with a scanning line animation overlay.",
+        "Instructions: Step-by-step list with numbered icons.",
+        "Status Indicator: Large, unmistakable."
+      ]
+    },
+    "dashboard_main": {
+      "layout": "Grid cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6",
+      "widgets": [
+        "Status Card: Col-span-1",
+        "Recent Activity: Col-span-1 md:col-span-2 row-span-2",
+        "Message Stats: Col-span-1"
+      ]
+    },
+    "chat_viewer": {
+      "layout": "Two-column layout (Sidebar List + Chat Area)",
+      "style": "Bordered container, full height minus header. Chat bubbles must be distinct."
+    },
+    "bot_config": {
+      "layout": "Single column max-w-2xl mx-auto",
+      "elements": [
+        "System Prompt: Large textarea (font-mono).",
+        "Model Selection: Select dropdown.",
+        "Save Button: Sticky or prominent."
+      ]
+    },
+    "logs": {
+      "style": "Terminal aesthetics. Black background, green/grey monospace text. Scrollable."
+    }
+  },
+  "universal_guidelines": [
+    "You tend to converge toward generic, 'on distribution' outputs. In frontend design, this creates what users call the 'AI slop' aesthetic. Avoid this: make creative, distinctive frontends that surprise and delight.",
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy",
+    "Use glass-morphism effects with backdrop filters (12-24px blur)",
+    "You MUST NOT apply universal transition. Eg: transition: all. This results in breaking transforms. Always add transitions for specific interactive elements like button, input excluding transforms",
+    "You MUST NOT center align the app container, ie do not add .App { text-align: center; } in the css file. This disrupts the human natural reading flow of text",
+    "Always use modern button styles like pill-shaped, or sharp button with interaction animations & color relevant to the app style",
+    "NEVER: use AI assistant Emoji characters for icons.",
+    "Every interaction needs micro-animations - hover states, transitions, parallax effects, and entrance animations. Static = dead.",
+    "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
+    "Main agent relies on these image URLs. Missing categories (especially sponsor logos) = main agent will use placeholder text which is FORBIDDEN",
+    "Use sonner for toasts"
+  ]
+}
