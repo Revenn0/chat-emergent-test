@@ -144,10 +144,38 @@ export default function ChatsPage() {
               <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-semibold">
                 {(selectedConv?.push_name || "?")[0].toUpperCase()}
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="text-sm font-medium">{selectedConv?.push_name || selectedJid}</p>
                 <p className="text-xs text-muted-foreground">{selectedJid.split("@")[0]}</p>
               </div>
+              {selectedConv?.taken_over && (
+                <Badge className="text-[10px] bg-orange-100 text-orange-700 border-orange-200 border gap-1 font-normal">
+                  <UserCheck size={9} /> Live Agent
+                </Badge>
+              )}
+              {selectedConv?.taken_over ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleTakeover(false)}
+                  disabled={takingOver}
+                  className="text-xs gap-1.5 border-green-300 text-green-700 hover:bg-green-50"
+                  data-testid="release-bot-btn"
+                >
+                  <Bot size={12} /> Release to Bot
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleTakeover(true)}
+                  disabled={takingOver}
+                  className="text-xs gap-1.5 border-orange-300 text-orange-700 hover:bg-orange-50"
+                  data-testid="takeover-btn"
+                >
+                  <BotOff size={12} /> Take Control
+                </Button>
+              )}
             </div>
 
             <ScrollArea className="flex-1 bg-muted/20">
