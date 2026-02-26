@@ -31,6 +31,8 @@ export function Layout({ children }) {
   const [status, setStatus] = useState({ connected: false, status: "disconnected" });
   const [mobileOpen, setMobileOpen] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
+  const [aiEnabled, setAiEnabled] = useState(true);
+  const [togglingAi, setTogglingAi] = useState(false);
   const location = useLocation();
   const { user, logout } = useAuth();
 
@@ -43,12 +45,22 @@ export function Layout({ children }) {
         ]);
         setStatus(st.data);
         setPendingCount(stats.data.pending_actions || 0);
+        setAiEnabled(stats.data.ai_enabled ?? true);
       } catch {}
     };
     fetchStatus();
     const interval = setInterval(fetchStatus, 6000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleAiToggle = async () => {
+    setTogglingAi(true);
+    try {
+      const resp = await axios.post(`${API}/ai/toggle`, {}, { withCredentials: true });
+      setAiEnabled(resp.data.ai_enabled);
+    } catch {}
+    setTogglingAi(false);
+  };
 
   const isConnected = status.connected;
   const isConnecting = status.status === "connecting" || status.status === "qr_ready";
