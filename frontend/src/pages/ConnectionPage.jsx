@@ -25,14 +25,14 @@ export default function ConnectionPage() {
 
   const fetchQR = async () => {
     try {
-      const resp = await axios.get(`${API}/wa/qr`);
+      const resp = await axios.get(`${API}/wa/qr`, { withCredentials: true });
       setQrData(resp.data.qr);
     } catch {}
   };
 
   const fetchStatus = async () => {
     try {
-      const resp = await axios.get(`${API}/wa/status`);
+      const resp = await axios.get(`${API}/wa/status`, { withCredentials: true });
       setStatus(resp.data);
       if (resp.data.connected) setTimeout(() => navigate("/"), 1500);
     } catch {}
@@ -48,13 +48,13 @@ export default function ConnectionPage() {
   const handleReconnect = async () => {
     setLoading(true);
     setQrData(null);
-    try { await axios.post(`${API}/wa/reconnect`); } catch {}
+    try { await axios.post(`${API}/wa/reconnect`, { withCredentials: true }); } catch {}
     setTimeout(() => setLoading(false), 1500);
   };
 
   const handleDisconnect = async () => {
     try {
-      await axios.post(`${API}/wa/disconnect`);
+      await axios.post(`${API}/wa/disconnect`, { withCredentials: true });
       setQrData(null);
       setStatus({ status: "disconnected", connected: false, jid: null });
     } catch {}

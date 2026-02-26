@@ -57,7 +57,7 @@ export default function KnowledgePage() {
 
   const loadDocs = async () => {
     try {
-      const resp = await axios.get(`${API}/knowledge`);
+      const resp = await axios.get(`${API}/knowledge`, { withCredentials: true });
       setDocs(resp.data);
     } catch {}
   };
@@ -104,7 +104,7 @@ export default function KnowledgePage() {
   const handleDelete = async (doc) => {
     setDeletingId(doc.id);
     try {
-      await axios.delete(`${API}/knowledge/${doc.id}`);
+      await axios.delete(`${API}/knowledge/${doc.id}`, { withCredentials: true });
       toast.success(`"${doc.filename}" removed from knowledge base.`);
       await loadDocs();
     } catch {
@@ -115,7 +115,7 @@ export default function KnowledgePage() {
 
   const handleToggle = async (doc) => {
     try {
-      const resp = await axios.patch(`${API}/knowledge/${doc.id}/toggle`);
+      const resp = await axios.patch(`${API}/knowledge/${doc.id}/toggle`, { withCredentials: true });
       setDocs((prev) => prev.map((d) => d.id === doc.id ? { ...d, enabled: resp.data.enabled } : d));
       toast.success(resp.data.enabled ? `"${doc.filename}" enabled.` : `"${doc.filename}" disabled.`);
     } catch {
@@ -127,7 +127,7 @@ export default function KnowledgePage() {
     setPreviewLoading(true);
     setPreviewDoc({ ...doc, preview: null });
     try {
-      const resp = await axios.get(`${API}/knowledge/${doc.id}/preview`);
+      const resp = await axios.get(`${API}/knowledge/${doc.id}/preview`, { withCredentials: true });
       setPreviewDoc({ ...doc, preview: resp.data.preview });
     } catch {
       setPreviewDoc({ ...doc, preview: "Failed to load preview." });

@@ -18,7 +18,7 @@ export default function LogsPage() {
 
   const fetchLogs = async () => {
     try {
-      const resp = await axios.get(`${API}/logs?limit=150`);
+      const resp = await axios.get(`${API}/logs?limit=150`, { withCredentials: true });
       setLogs(resp.data);
     } catch {}
   };
@@ -34,7 +34,7 @@ export default function LogsPage() {
   const handleClear = async () => {
     setClearing(true);
     try {
-      await axios.delete(`${API}/logs`);
+      await axios.delete(`${API}/logs`, { withCredentials: true });
       setLogs([]);
       toast.success("Logs cleared.");
     } catch {

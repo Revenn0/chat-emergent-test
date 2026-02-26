@@ -26,7 +26,7 @@ export default function ChatsPage() {
 
   const loadConversations = async () => {
     try {
-      const resp = await axios.get(`${API}/conversations`);
+      const resp = await axios.get(`${API}/conversations`, { withCredentials: true });
       setConversations(resp.data);
     } catch {}
   };
@@ -34,7 +34,7 @@ export default function ChatsPage() {
   const loadMessages = async (jid) => {
     if (!jid) return;
     try {
-      const resp = await axios.get(`${API}/messages/${encodeURIComponent(jid)}`);
+      const resp = await axios.get(`${API}/messages/${encodeURIComponent(jid, { withCredentials: true })}`);
       setMessages(resp.data);
     } catch {}
   };
