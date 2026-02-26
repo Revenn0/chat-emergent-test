@@ -47,6 +47,7 @@ function AppRoutes() {
               <Route path="/knowledge" element={<KnowledgePage />} />
               <Route path="/actions" element={<ActionsPage />} />
               <Route path="/integrations" element={<IntegrationsPage />} />
+              <Route path="/workflow" element={<WorkflowPage />} />
               <Route path="/config" element={<ConfigPage />} />
               <Route path="/logs" element={<LogsPage />} />
             </Routes>

@@ -19,6 +19,7 @@ const navItems = [
   { path: "/chats", icon: MessageSquare, label: "Conversations" },
   { path: "/knowledge", icon: BookOpen, label: "Knowledge Base" },
   { path: "/actions", icon: Zap, label: "Bot Actions" },
+  { path: "/workflow", icon: GitBranch, label: "Workflow" },
   { path: "/integrations", icon: Settings, label: "Integrations" },
   { path: "/config", icon: Settings, label: "Settings" },
   { path: "/logs", icon: Terminal, label: "Logs" },
