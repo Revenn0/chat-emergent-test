@@ -275,6 +275,192 @@ class WhatsAppBotAPITester:
         )
         return success
 
+    def test_knowledge_base_apis(self):
+        """Test Knowledge Base APIs"""
+        print("\n📚 Testing Knowledge Base endpoints...")
+        
+        # Test 1: GET /api/knowledge (list documents)
+        list_success, initial_docs = self.run_test(
+            "List Knowledge Documents",
+            "GET",
+            "api/knowledge",
+            200
+        )
+        if not list_success:
+            return False
+        
+        if not isinstance(initial_docs, list):
+            print(f"❌ Expected array of documents, got {type(initial_docs)}")
+            return False
+        
+        print(f"📋 Found {len(initial_docs)} existing documents")
+        
+        # Test 2: Create a test TXT file for upload
+        test_content = "This is a test knowledge base document.\n\nIt contains sample information about our test company.\n\nWe provide excellent testing services."
+        
+        # Test 3: POST /api/knowledge/upload (upload document)
+        files = {'file': ('test_knowledge.txt', test_content.encode(), 'text/plain')}
+        
+        try:
+            # Use requests to upload file
+            url = f"{self.base_url}/api/knowledge/upload"
+            print(f"\n🔍 Testing File Upload...")
+            print(f"   URL: POST {url}")
+            
+            response = requests.post(url, files=files, timeout=30)
+            
+            if response.status_code == 200:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                upload_data = response.json()
+                
+                # Verify upload response structure
+                required_fields = ['id', 'filename', 'file_type', 'char_count', 'enabled']
+                for field in required_fields:
+                    if field not in upload_data:
+                        print(f"❌ Missing field in upload response: {field}")
+                        return False
+                
+                doc_id = upload_data['id']
+                print(f"📄 Uploaded document ID: {doc_id}")
+                
+            else:
+                print(f"❌ Failed - Expected 200, got {response.status_code}")
+                print(f"   Response: {response.text[:200]}...")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            return False
+        
+        self.tests_run += 1
+        
+        # Test 4: Verify document appears in list
+        list_success_2, updated_docs = self.run_test(
+            "Verify Document in List",
+            "GET", 
+            "api/knowledge",
+            200
+        )
+        if not list_success_2:
+            return False
+        
+        # Check if our uploaded doc appears in the list
+        uploaded_doc = next((doc for doc in updated_docs if doc.get('id') == doc_id), None)
+        if not uploaded_doc:
+            print(f"❌ Uploaded document not found in list")
+            return False
+        
+        print(f"✅ Document found in list: {uploaded_doc['filename']}")
+        
+        # Test 5: GET /api/knowledge/{id}/preview (preview document)
+        preview_success, preview_data = self.run_test(
+            "Preview Document",
+            "GET",
+            f"api/knowledge/{doc_id}/preview",
+            200
+        )
+        if not preview_success:
+            return False
+        
+        if 'preview' not in preview_data:
+            print(f"❌ Missing 'preview' field in response")
+            return False
+        
+        if len(preview_data['preview']) == 0:
+            print(f"❌ Preview is empty")
+            return False
+        
+        print(f"✅ Preview retrieved: {len(preview_data['preview'])} characters")
+        
+        # Test 6: PATCH /api/knowledge/{id}/toggle (toggle enabled state)
+        initial_state = uploaded_doc['enabled']
+        toggle_success, toggle_data = self.run_test(
+            "Toggle Document State",
+            "PATCH",
+            f"api/knowledge/{doc_id}/toggle",
+            200
+        )
+        if not toggle_success:
+            return False
+        
+        if 'enabled' not in toggle_data:
+            print(f"❌ Missing 'enabled' field in toggle response")
+            return False
+        
+        if toggle_data['enabled'] == initial_state:
+            print(f"❌ Document state did not change after toggle")
+            return False
+        
+        print(f"✅ Document state toggled: {initial_state} → {toggle_data['enabled']}")
+        
+        # Test 7: DELETE /api/knowledge/{id} (delete document)
+        delete_success, _ = self.run_test(
+            "Delete Document",
+            "DELETE",
+            f"api/knowledge/{doc_id}",
+            200
+        )
+        if not delete_success:
+            return False
+        
+        # Test 8: Verify document is removed from list
+        final_list_success, final_docs = self.run_test(
+            "Verify Document Deleted",
+            "GET",
+            "api/knowledge",
+            200
+        )
+        if not final_list_success:
+            return False
+        
+        deleted_doc = next((doc for doc in final_docs if doc.get('id') == doc_id), None)
+        if deleted_doc:
+            print(f"❌ Document still exists after deletion")
+            return False
+        
+        print(f"✅ Document successfully deleted")
+        
+        # Test 9: Test error handling - try to access deleted document
+        error_success, _ = self.run_test(
+            "Access Deleted Document (Should Fail)",
+            "GET",
+            f"api/knowledge/{doc_id}/preview",
+            404
+        )
+        
+        return error_success
+
+    def run_test_with_file_upload(self, name, method, endpoint, expected_status, files=None, data=None):
+        """Helper method for file upload tests"""
+        url = f"{self.base_url}/{endpoint}"
+        self.tests_run += 1
+        print(f"\n🔍 Testing {name}...")
+        print(f"   URL: {method} {url}")
+        
+        try:
+            if method == 'POST' and files:
+                response = requests.post(url, files=files, data=data, timeout=30)
+            else:
+                return self.run_test(name, method, endpoint, expected_status, data)
+
+            success = response.status_code == expected_status
+            
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                response_data = response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
+                print(f"   Response: {json.dumps(response_data, indent=2)[:200]}...")
+            else:
+                print(f"❌ Failed - Expected {expected_status}, got {response.status_code}")
+                print(f"   Response: {response.text[:200]}...")
+
+            return success, response.json() if success and response.headers.get('content-type', '').startswith('application/json') else {}
+
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            return False, {}
+
     def run_all_tests(self):
         """Run all API tests"""
         print("="*60)
