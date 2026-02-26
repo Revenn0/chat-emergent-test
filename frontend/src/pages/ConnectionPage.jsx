@@ -10,11 +10,11 @@ import { Separator } from "../components/ui/separator";
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const steps = [
-  "Abra o WhatsApp no seu celular",
-  'Toque em "Mais opções" ou "Configurações"',
-  'Selecione "Aparelhos conectados"',
-  'Toque em "Conectar um aparelho"',
-  "Escaneie o código QR ao lado",
+  "Open WhatsApp on your mobile device",
+  'Tap "More options" or "Settings"',
+  'Select "Linked devices"',
+  'Tap "Link a device"',
+  "Scan the QR code on the left",
 ];
 
 export default function ConnectionPage() {
@@ -63,8 +63,8 @@ export default function ConnectionPage() {
   return (
     <div className="p-6 max-w-3xl space-y-4">
       <div>
-        <h1 className="text-lg font-semibold">Conexão WhatsApp</h1>
-        <p className="text-sm text-muted-foreground">Escaneie o QR code para conectar seu número</p>
+        <h1 className="text-lg font-semibold">WhatsApp Connection</h1>
+        <p className="text-sm text-muted-foreground">Scan the QR code to link your number</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -82,7 +82,7 @@ export default function ConnectionPage() {
                 }`}
                 data-testid="connection-status-badge"
               >
-                {status.connected ? "Conectado" : status.status === "qr_ready" ? "Aguardando scan" : status.status === "connecting" ? "Conectando..." : "Desconectado"}
+                {status.connected ? "Connected" : status.status === "qr_ready" ? "Awaiting scan" : status.status === "connecting" ? "Connecting..." : "Disconnected"}
               </Badge>
             </div>
           </CardHeader>
@@ -94,7 +94,7 @@ export default function ConnectionPage() {
                   <CheckCircle2 size={32} className="text-green-600" />
                 </div>
                 <div className="text-center">
-                  <p className="font-medium text-sm">Conectado</p>
+                  <p className="font-medium text-sm">Connected</p>
                   {status.jid && (
                     <p className="text-xs text-muted-foreground mt-0.5">
                       +{status.jid.split(":")[0].replace("@s.whatsapp.net", "")}
@@ -109,7 +109,7 @@ export default function ConnectionPage() {
                   data-testid="disconnect-btn"
                 >
                   <WifiOff size={13} className="mr-1.5" />
-                  Desconectar
+                  Disconnect
                 </Button>
               </>
             ) : (
@@ -127,7 +127,7 @@ export default function ConnectionPage() {
                       <div className="w-8 h-8 rounded border-2 border-muted-foreground/30 mx-auto mb-2 flex items-center justify-center">
                         <div className="w-4 h-4 bg-muted-foreground/20 rounded-sm" />
                       </div>
-                      <p className="text-xs text-muted-foreground">QR code aparecerá aqui</p>
+                      <p className="text-xs text-muted-foreground">QR code will appear here</p>
                     </div>
                   )}
                 </div>
@@ -139,7 +139,7 @@ export default function ConnectionPage() {
                   data-testid="reconnect-btn"
                 >
                   {loading ? <Loader2 size={13} className="mr-1.5 animate-spin" /> : <RefreshCw size={13} className="mr-1.5" />}
-                  {loading ? "Aguardando..." : "Gerar novo QR"}
+                  {loading ? "Please wait..." : "Generate new QR"}
                 </Button>
               </>
             )}
@@ -149,8 +149,8 @@ export default function ConnectionPage() {
         {/* Instructions Card */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Como conectar</CardTitle>
-            <CardDescription className="text-xs">Siga os passos abaixo</CardDescription>
+            <CardTitle className="text-sm font-medium">How to connect</CardTitle>
+            <CardDescription className="text-xs">Follow the steps below</CardDescription>
           </CardHeader>
           <Separator />
           <CardContent className="pt-4">
@@ -165,7 +165,7 @@ export default function ConnectionPage() {
               ))}
             </ol>
             <div className="mt-5 p-3 rounded-md bg-muted text-xs text-muted-foreground leading-relaxed">
-              <strong className="text-foreground">Nota:</strong> O WhatsApp permite até 4 aparelhos conectados. A sessão é mantida automaticamente pelo serviço.
+              <strong className="text-foreground">Note:</strong> WhatsApp allows up to 4 linked devices. Your session is maintained automatically by the service.
             </div>
           </CardContent>
         </Card>
