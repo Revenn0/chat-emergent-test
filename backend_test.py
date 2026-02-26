@@ -383,12 +383,18 @@ class WhatsAppBotAPITester:
         return list_success and filter_success
 
     def test_logs_api(self):
-        """Test logs endpoint"""
+        """Test logs endpoint with authentication"""
+        auth_headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.test_session_token}'
+        }
+        
         success, response = self.run_test(
-            "Get Logs",
+            "Get Logs (Authenticated)",
             "GET",
             "api/logs",
-            200
+            200,
+            headers=auth_headers
         )
         if success:
             if not isinstance(response, list):
@@ -397,12 +403,18 @@ class WhatsAppBotAPITester:
         return success
 
     def test_conversations_api(self):
-        """Test conversations endpoint"""
+        """Test conversations endpoint with authentication"""
+        auth_headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.test_session_token}'
+        }
+        
         success, response = self.run_test(
-            "Get Conversations",
+            "Get Conversations (Authenticated)",
             "GET",
             "api/conversations",
-            200
+            200,
+            headers=auth_headers
         )
         if success:
             if not isinstance(response, list):
