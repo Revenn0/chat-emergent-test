@@ -417,7 +417,47 @@ async def get_messages(jid: str, user: User = Depends(get_current_user)):
     msgs = await db.messages.find({"user_id": user.user_id, "from_jid": decoded_jid}, {"_id": 0}).sort("timestamp", 1).to_list(500)
     return msgs
 
-# ─── BOT ACTIONS ──────────────────────────────────────────
+# ─── TAKEOVER ─────────────────────────────────────────────
+
+@api_router.post("/conversations/{jid_encoded}/takeover")
+async def set_takeover(jid_encoded: str, req: TakeoverRequest, user: User = Depends(get_current_user)):
+    jid = jid_encoded.replace("%40", "@")
+    await db.conversations.update_one(
+        {"user_id": user.user_id, "jid": jid},
+        {"$set": {"taken_over": req.active, "takeover_by": user.email if req.active else None}},
+        upsert=True,
+    )
+    action = "taken over" if req.active else "released"
+    await add_log(user.user_id, "info", f"Conversation {jid.split('@')[0]} {action} by {user.name}")
+    return {"ok": True, "taken_over": req.active}
+
+@api_router.get("/conversations/{jid_encoded}/takeover")
+async def get_takeover(jid_encoded: str, user: User = Depends(get_current_user)):
+    jid = jid_encoded.replace("%40", "@")
+    conv = await db.conversations.find_one({"user_id": user.user_id, "jid": jid}, {"_id": 0})
+    if not conv:
+        return {"taken_over": False, "takeover_by": None}
+    return {"taken_over": conv.get("taken_over", False), "takeover_by": conv.get("takeover_by")}
+
+# ─── WORKFLOW ─────────────────────────────────────────────
+
+@api_router.get("/workflow")
+async def get_workflow(user: User = Depends(get_current_user)):
+    doc = await db.workflows.find_one({"user_id": user.user_id}, {"_id": 0})
+    if doc:
+        doc.pop("user_id", None)
+        return doc
+    return WorkflowData().model_dump()
+
+@api_router.post("/workflow")
+async def save_workflow(data: WorkflowData, user: User = Depends(get_current_user)):
+    data.updated_at = datetime.now(timezone.utc).isoformat()
+    doc = {**data.model_dump(), "user_id": user.user_id}
+    await db.workflows.replace_one({"user_id": user.user_id}, doc, upsert=True)
+    await add_log(user.user_id, "info", f"Workflow saved ({len(data.nodes)} nodes)")
+    return {"ok": True}
+
+
 
 @api_router.get("/actions")
 async def get_actions(status: Optional[str] = None, user: User = Depends(get_current_user)):
