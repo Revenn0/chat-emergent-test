@@ -22,6 +22,7 @@ export default function ChatsPage() {
   const [messages, setMessages] = useState([]);
   const [manualMsg, setManualMsg] = useState("");
   const [sendingMsg, setSendingMsg] = useState(false);
+  const [takingOver, setTakingOver] = useState(false);
   const messagesEndRef = useRef(null);
   const [searchParams] = useSearchParams();
 
