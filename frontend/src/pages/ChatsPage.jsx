@@ -36,7 +36,7 @@ export default function ChatsPage() {
   const loadMessages = async (jid) => {
     if (!jid) return;
     try {
-      const resp = await axios.get(`${API}/messages/${encodeURIComponent(jid, { withCredentials: true })}`);
+      const resp = await axios.get(`${API}/messages/${encodeURIComponent(jid)}`, { withCredentials: true });
       setMessages(resp.data);
     } catch {}
   };
