@@ -1029,13 +1029,28 @@ async def root():
     return {"message": "WhatsApp 365 Bot API"}
 
 app.include_router(api_router)
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
+# Get CORS origins from env, default to allowing all for development
+cors_origins = os.environ.get('CORS_ORIGINS', '*')
+if cors_origins == '*':
+    # Allow all origins in development
+    app.add_middleware(
+        CORSMiddleware,
+        allow_credentials=True,
+        allow_origins=["*"],
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+else:
+    # Specific origins - split by comma
+    origin_list = [o.strip() for o in cors_origins.split(',') if o.strip()]
+    app.add_middleware(
+        CORSMiddleware,
+        allow_credentials=True,
+        allow_origins=origin_list,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
