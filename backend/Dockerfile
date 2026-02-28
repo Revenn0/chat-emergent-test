@@ -2,6 +2,9 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# Force rebuild
+RUN echo "rebuild $(date)" > /rebuild_marker
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
