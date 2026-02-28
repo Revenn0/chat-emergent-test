@@ -8,12 +8,13 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
-from emergentintegrations.llm.chat import LlmChat, UserMessage
+import google.genai as genai
 from google_auth_oauthlib.flow import Flow
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request as GoogleRequest
 from googleapiclient.discovery import build
 import base64, email as email_lib, warnings
+import bcrypt
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -22,8 +23,42 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-BAILEYS_URL = os.environ.get('BAILEYS_URL', 'http://localhost:3001')
+BAILEYS_URL = os.environ.get('BAILEYS_URL', 'http://localhost:4000')
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+
+ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
+ADMIN_PASSWORD_HASH = os.environ.get('ADMIN_PASSWORD', '')
+
+# ─── GEMINI HELPER ──────────────────────────────────────────
+
+async def get_gemini_key_for_user(user_id: str) -> str:
+    doc = await db.bot_config.find_one({"user_id": user_id}, {"_id": 0, "gemini_api_key": 1})
+    return doc.get("gemini_api_key", "") if doc else ""
+
+def call_gemini(prompt: str, user_id: str = None, model_name: str = "gemini-2.0-flash") -> str:
+    api_key = GEMINI_API_KEY
+    if not api_key and user_id:
+        import asyncio
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        api_key = loop.run_until_complete(get_gemini_key_for_user(user_id))
+    
+    if not api_key:
+        return "Gemini API key not configured. Please add it in Settings."
+    
+    genai.configure(api_key=api_key)
+    
+    try:
+        model = genai.GenerativeModel(model_name)
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        logger.error(f"Gemini error: {e}")
+        return "Sorry, I encountered an error processing your request."
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
@@ -37,6 +72,10 @@ class User(BaseModel):
     email: str
     name: str
     picture: Optional[str] = None
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
 
 class BookingType(BaseModel):
     id: str
@@ -220,6 +259,66 @@ def detect_booking(text: str, booking_types: List[BookingType]):
     return None
 
 # ─── AUTH ROUTES ──────────────────────────────────────────
+
+@api_router.post("/auth/login")
+async def login(request: Request, response: Response):
+    body = await request.json()
+    username = body.get("username")
+    password = body.get("password")
+    
+    if not username or not password:
+        raise HTTPException(status_code=400, detail="Username and password required")
+    
+    # Verify credentials
+    if username != ADMIN_USERNAME:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    # Check if password matches (hash or plain)
+    password_valid = False
+    if ADMIN_PASSWORD_HASH:
+        # Check if it's a bcrypt hash (starts with $2a$, $2b$, or $2y$)
+        if ADMIN_PASSWORD_HASH.startswith(('$2a$', '$2b$', '$2y$')):
+            try:
+                password_valid = bcrypt.checkpw(password.encode('utf-8'), ADMIN_PASSWORD_HASH.encode('utf-8'))
+            except Exception:
+                password_valid = False
+        else:
+            # Plain text comparison (development only)
+            password_valid = (password == ADMIN_PASSWORD_HASH)
+    else:
+        raise HTTPException(status_code=500, detail="Admin password not configured")
+    
+    if not password_valid:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    # Get or create admin user
+    user_id = "admin"
+    user_email = f"{ADMIN_USERNAME}@admin.local"
+    user_name = "Admin"
+    
+    existing = await db.users.find_one({"user_id": user_id}, {"_id": 0})
+    if not existing:
+        await db.users.insert_one({
+            "user_id": user_id, 
+            "email": user_email, 
+            "name": user_name, 
+            "picture": None, 
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+    
+    # Create session
+    session_token = str(uuid.uuid4())
+    from datetime import timedelta
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    await db.user_sessions.insert_one({
+        "user_id": user_id, 
+        "session_token": session_token, 
+        "expires_at": expires_at.isoformat(), 
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    response.set_cookie("session_token", session_token, httponly=True, secure=False, samesite="lax", path="/", max_age=604800)
+    return {"user_id": user_id, "email": user_email, "name": user_name, "picture": None}
 
 @api_router.post("/auth/session")
 async def create_session(request: Request, response: Response):
@@ -434,9 +533,9 @@ async def handle_incoming_message(msg: IncomingMessage):
             kb_text = "\n\n---\n\n".join(f"[Document: {d['filename']}]\n{d['content'][:5000]}" for d in kb_docs)
             enriched_prompt += f"\n\n## Knowledge Base Documents\n{kb_text}"
 
-        chat = LlmChat(api_key=EMERGENT_LLM_KEY, session_id=f"wa_{user_id}_{jid}", system_message=enriched_prompt).with_model(config.model_provider, config.model_name)
+        full_prompt = f"{enriched_prompt}\n\nUser message: {text}"
         try:
-            reply = await chat.send_message(UserMessage(text=text))
+            reply = call_gemini(full_prompt, user_id)
         except Exception as e:
             await add_log(user_id, "error", f"LLM error: {str(e)}")
             reply = config.fallback_message
@@ -563,6 +662,26 @@ async def save_config(config: BotConfig, user: User = Depends(get_current_user))
     doc = {**config.model_dump(), "user_id": user.user_id}
     await db.bot_config.replace_one({"user_id": user.user_id}, doc, upsert=True)
     await add_log(user.user_id, "info", "Bot configuration updated")
+    return {"ok": True}
+
+# ─── GEMINI API KEY ──────────────────────────────────────────
+
+class GeminiKeyRequest(BaseModel):
+    api_key: str
+
+@api_router.get("/config/gemini")
+async def get_gemini_key(user: User = Depends(get_current_user)):
+    doc = await db.bot_config.find_one({"user_id": user.user_id}, {"_id": 0, "gemini_api_key": 1})
+    return {"api_key": doc.get("gemini_api_key", "") if doc else ""}
+
+@api_router.post("/config/gemini")
+async def save_gemini_key(req: GeminiKeyRequest, user: User = Depends(get_current_user)):
+    await db.bot_config.update_one(
+        {"user_id": user.user_id},
+        {"$set": {"gemini_api_key": req.api_key, "updated_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True
+    )
+    await add_log(user.user_id, "info", "Gemini API key updated")
     return {"ok": True}
 
 # ─── KNOWLEDGE BASE ───────────────────────────────────────
@@ -881,9 +1000,9 @@ async def chat_test(req: ChatTestRequest, user: User = Depends(get_current_user)
         booking_detected = True
     else:
         enriched_prompt = await build_enriched_prompt(config, user_id)
-        chat = LlmChat(api_key=EMERGENT_LLM_KEY, session_id=f"test_{user_id}", system_message=enriched_prompt).with_model(config.model_provider, config.model_name)
+        full_prompt = f"{enriched_prompt}\n\nUser message: {req.message}"
         try:
-            reply = await chat.send_message(UserMessage(text=req.message))
+            reply = call_gemini(full_prompt, user_id)
         except Exception as e:
             await add_log(user_id, "error", f"Chat test LLM error: {str(e)}")
             reply = config.fallback_message

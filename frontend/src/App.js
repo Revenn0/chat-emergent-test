@@ -4,7 +4,6 @@ import { Toaster } from "./components/ui/sonner";
 import { Layout } from "./components/Layout";
 import { AuthProvider, useAuth } from "./components/AuthProvider";
 import LoginPage from "./pages/LoginPage";
-import AuthCallback from "./pages/AuthCallback";
 import DashboardPage from "./pages/DashboardPage";
 import ConnectionPage from "./pages/ConnectionPage";
 import ChatsPage from "./pages/ChatsPage";
@@ -28,13 +27,6 @@ function ProtectedRoute({ children }) {
 }
 
 function AppRoutes() {
-  const { loading } = useAuth();
-
-  // Handle auth callback (hash-based)
-  if (window.location.hash?.includes("session_id=")) {
-    return <AuthCallback />;
-  }
-
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />

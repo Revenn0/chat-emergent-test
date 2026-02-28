@@ -139,12 +139,18 @@ export default function ConfigPage() {
   const [config, setConfig] = useState(defaultConfig);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [geminiKey, setGeminiKey] = useState("");
+  const [savingGemini, setSavingGemini] = useState(false);
 
   useEffect(() => {
     const load = async () => {
       try {
-        const resp = await axios.get(`${API}/config`, { withCredentials: true });
-        setConfig({ ...defaultConfig, ...resp.data });
+        const [configResp, geminiResp] = await Promise.all([
+          axios.get(`${API}/config`, { withCredentials: true }),
+          axios.get(`${API}/config/gemini`, { withCredentials: true })
+        ]);
+        setConfig({ ...defaultConfig, ...configResp.data });
+        setGeminiKey(geminiResp.data.api_key || "");
       } catch {}
       setLoading(false);
     };
@@ -162,6 +168,17 @@ export default function ConfigPage() {
       toast.error("Failed to save settings. Please try again.");
     }
     setSaving(false);
+  };
+
+  const handleSaveGemini = async () => {
+    setSavingGemini(true);
+    try {
+      await axios.post(`${API}/config/gemini`, { api_key: geminiKey }, { withCredentials: true });
+      toast.success("Gemini API key saved.");
+    } catch {
+      toast.error("Failed to save Gemini API key.");
+    }
+    setSavingGemini(false);
   };
 
   if (loading) {
@@ -184,6 +201,25 @@ export default function ConfigPage() {
           {saving ? "Saving..." : "Save"}
         </Button>
       </div>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm">Gemini API Key</CardTitle>
+          <CardDescription className="text-xs">Get your free API key at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="underline">Google AI Studio</a></CardDescription>
+        </CardHeader>
+        <CardContent className="flex gap-2">
+          <Input
+            type="password"
+            placeholder="Enter your Gemini API key"
+            value={geminiKey}
+            onChange={(e) => setGeminiKey(e.target.value)}
+            className="text-sm"
+          />
+          <Button onClick={handleSaveGemini} disabled={savingGemini} size="sm">
+            {savingGemini ? <Loader2 size={13} className="animate-spin" /> : "Save"}
+          </Button>
+        </CardContent>
+      </Card>
 
       <Tabs defaultValue="identity">
         <TabsList className="grid w-full grid-cols-6 h-8">
