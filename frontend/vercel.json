@@ -1,5 +1,4 @@
 {
   "buildCommand": "npx craco build",
-  "installCommand": "npm install --legacy-peer-deps --prefer-offline",
-  "outputDirectory": "../build"
+  "installCommand": "npm install --legacy-peer-deps --prefer-offline"
 }
