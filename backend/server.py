@@ -28,7 +28,7 @@ EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
 
 ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
-ADMIN_PASSWORD_HASH = os.environ.get('ADMIN_PASSWORD', '')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', '')
 
 # ─── GEMINI HELPER ──────────────────────────────────────────
 
@@ -275,16 +275,16 @@ async def login(request: Request, response: Response):
     
     # Check if password matches (hash or plain)
     password_valid = False
-    if ADMIN_PASSWORD_HASH:
+    if ADMIN_PASSWORD:
         # Check if it's a bcrypt hash (starts with $2a$, $2b$, or $2y$)
-        if ADMIN_PASSWORD_HASH.startswith(('$2a$', '$2b$', '$2y$')):
+        if ADMIN_PASSWORD.startswith(('$2a$', '$2b$', '$2y$')):
             try:
-                password_valid = bcrypt.checkpw(password.encode('utf-8'), ADMIN_PASSWORD_HASH.encode('utf-8'))
+                password_valid = bcrypt.checkpw(password.encode('utf-8'), ADMIN_PASSWORD.encode('utf-8'))
             except Exception:
                 password_valid = False
         else:
             # Plain text comparison (development only)
-            password_valid = (password == ADMIN_PASSWORD_HASH)
+            password_valid = (password == ADMIN_PASSWORD)
     else:
         raise HTTPException(status_code=500, detail="Admin password not configured")
     
